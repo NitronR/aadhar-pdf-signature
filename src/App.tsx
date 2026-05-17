@@ -342,6 +342,21 @@ const S = {
     fontFamily: "inherit",
     cursor: "pointer",
     transition: "all 0.15s",
+    marginBottom: 10,
+  },
+  feedbackBtn: {
+    display: "block",
+    width: "100%",
+    padding: "11px",
+    background: C.blue,
+    border: "none",
+    borderRadius: 6,
+    color: C.white,
+    fontSize: 14,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    cursor: "pointer",
+    transition: "background 0.15s",
     marginBottom: 24,
   },
 
@@ -612,6 +627,7 @@ export default function AadhaarVerifier() {
         * { box-sizing: border-box; }
         a:hover { opacity: 0.85; }
         button:hover { filter: brightness(0.93); }
+        a.feedbackBtn:hover { opacity: 1; filter: brightness(0.9); }
         details summary::-webkit-details-marker { display: none; }
       `}</style>
 
@@ -742,6 +758,14 @@ export default function AadhaarVerifier() {
               <button style={S.resetBtn} onClick={reset}>
                 ← Verify Another PDF
               </button>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdtsrlXxjqUQdVkMXFPEZ1bPqVsehhUKdHZOf-sFgQPoBCKDw/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ ...S.feedbackBtn, textDecoration: "none", textAlign: "center" as const }}
+              >
+                🙏 Help us with a Feedback :)
+              </a>
 
               {/* Signer Certificate */}
               <p style={S.sectionLabel}>Signer Certificate</p>
