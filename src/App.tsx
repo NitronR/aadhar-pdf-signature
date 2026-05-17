@@ -356,7 +356,7 @@ const S = {
   },
   infoGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "1fr 1fr 1fr",
     gap: 10,
     marginBottom: 20,
   },
@@ -806,6 +806,26 @@ export default function AadhaarVerifier() {
                   <div style={S.cellLabel}>Signature Size</div>
                   <div style={S.cellValue}>{(result.sigSize / 1024).toFixed(1)} KB</div>
                 </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>Chain Valid</div>
+                  <div style={{
+                    ...S.cellValue,
+                    color: result.chainVerified ? C.green : C.red,
+                    fontWeight: 600,
+                  }}>
+                    {result.chainVerified ? "✓ Reaches CCA India Root" : "✗ Not trusted"}
+                  </div>
+                </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>PKCS#7 Signature</div>
+                  <div style={{
+                    ...S.cellValue,
+                    color: result.signatureVerified ? C.green : C.red,
+                    fontWeight: 600,
+                  }}>
+                    {result.signatureVerified ? "✓ Cryptographically valid" : "✗ Invalid"}
+                  </div>
+                </div>
               </div>
 
               {/* File Info */}
@@ -928,6 +948,15 @@ export default function AadhaarVerifier() {
         100% client-side · No data leaves your browser · Free to use<br />
         <a href="/hi/" style={{ color: C.blue, textDecoration: "none", fontSize: 11 }}>
           हिंदी में देखें →
+        </a>
+        {" · "}
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSdtsrlXxjqUQdVkMXFPEZ1bPqVsehhUKdHZOf-sFgQPoBCKDw/viewform"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: C.blue, textDecoration: "none", fontSize: 11 }}
+        >
+          Give Feedback →
         </a>
       </footer>
     </div>
