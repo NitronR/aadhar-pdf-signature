@@ -621,7 +621,7 @@ export default function AadhaarVerifier() {
           <div style={S.topBarLogoBox}>🔐</div>
           <div>
             <span style={S.topBarName}>Aadhaar PDF Verifier</span>
-            <span style={S.topBarTagline}>UIDAI Digital Signature Tool</span>
+            <span style={S.topBarTagline}>Aadhaar Digital Signature Tool</span>
           </div>
         </div>
         <div style={S.topBarBadge}>🔒 100% Private</div>
