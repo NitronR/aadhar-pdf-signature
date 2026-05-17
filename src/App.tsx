@@ -599,8 +599,7 @@ export default function AadhaarVerifier() {
       </div>
 
       <p style={styles.footer}>
-        100% client-side • No data leaves your browser • Open source libraries only<br />
-        forge.js (cryptography) • pdf-lib (PDF manipulation)
+        100% client-side • No data leaves your browser
       </p>
     </div>
   );
