@@ -245,7 +245,7 @@ export async function addVerificationStamp(
   // ── Replace n4 ("Signature Not Verified") with "Signature valid" ─────────────
   // n4 BBox [0 21 50 30]; original: BT 1 0 0 1 2 23.3 Tm /F1 4.7 Tf (…)Tj ET
   patchStream(ctx, frmXObjects.get(PDFName.of('n4')), PDFName, PDFNumber,
-    'BT\n1 0 0 1 2 23.3 Tm\n/F1 4.7 Tf\n(Signature valid)Tj\nET\n');
+    'BT\n1 0 0 1 2 23.3 Tm\n/F1 6.77 Tf\n(Signature valid)Tj\nET\n');
 
   return await pdfDoc.save({ useObjectStreams: false });
 }

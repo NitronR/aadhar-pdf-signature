@@ -253,6 +253,7 @@ const styles = {
     letterSpacing: 1,
     cursor: "pointer",
     textTransform: "uppercase" as const,
+    marginBottom: 20,
   },
   footer: {
     marginTop: 48,
@@ -448,6 +449,28 @@ export default function AadhaarVerifier() {
               </div>
             </div>
 
+            {/* Actions — top */}
+            {verifiedUrl && result.verified ? (
+              <a
+                href={verifiedUrl}
+                download={result.fileName.replace(".pdf", "_verified.pdf")}
+                style={styles.downloadBtn}
+              >
+                ↓ Download Stamped PDF
+              </a>
+            ) : result.verified ? (
+              <div style={{ ...styles.errorBox, marginBottom: 12 }}>
+                Stamp could not be embedded — but the signature is verified.
+              </div>
+            ) : (
+              <div style={{ ...styles.errorBox, marginBottom: 12 }}>
+                Verification failed. The PDF may have been tampered with, or may not be a genuine UIDAI Aadhaar document.
+              </div>
+            )}
+            <button style={styles.resetBtn} onClick={reset}>
+              ← Verify Another PDF
+            </button>
+
             {/* Signer Certificate */}
             <p style={styles.sectionLabel}>Signer Certificate</p>
             <div style={styles.infoGrid}>
@@ -523,28 +546,7 @@ export default function AadhaarVerifier() {
               </div>
             </div>
 
-            {/* Actions */}
             <hr style={styles.divider} />
-            {verifiedUrl && result.verified ? (
-              <a
-                href={verifiedUrl}
-                download={result.fileName.replace(".pdf", "_verified.pdf")}
-                style={styles.downloadBtn}
-              >
-                ↓ Download Stamped PDF
-              </a>
-            ) : result.verified ? (
-              <div style={{ ...styles.errorBox, marginBottom: 12 }}>
-                Stamp could not be embedded — but the signature is verified.
-              </div>
-            ) : (
-              <div style={{ ...styles.errorBox, marginBottom: 12 }}>
-                Verification failed. The PDF may have been tampered with, or may not be a genuine UIDAI Aadhaar document.
-              </div>
-            )}
-            <button style={styles.resetBtn} onClick={reset}>
-              ← Verify Another PDF
-            </button>
           </div>
         )}
       </div>
