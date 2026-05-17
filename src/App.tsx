@@ -18,6 +18,7 @@ interface SignatureResult extends VerifyResult {
 type Step = "upload" | "analyzing" | "result";
 
 // ─── Script Loader ─────────────────────────────────────────────────────────────
+
 const loadScript = (src: string): Promise<void> =>
   new Promise((res, rej) => {
     if (document.querySelector(`script[src="${src}"]`)) return res();
@@ -29,162 +30,329 @@ const loadScript = (src: string): Promise<void> =>
     document.head.appendChild(s);
   });
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-const styles = {
-  root: {
+// ─── UIDAI/Aadhaar Design Tokens ──────────────────────────────────────────────
+
+const C = {
+  blue:        "#0d6efd",
+  blueHover:   "#0b5ed7",
+  blueLight:   "#e7f1ff",
+  blueBorder:  "#9ec5fe",
+  green:       "#198754",
+  greenLight:  "#d1e7dd",
+  greenDark:   "#0a3622",
+  greenBorder: "#a3cfbb",
+  red:         "#dc3545",
+  redLight:    "#f8d7da",
+  redDark:     "#58151c",
+  redBorder:   "#f1aeb5",
+  text:        "#212529",
+  muted:       "#6c757d",
+  border:      "#dee2e6",
+  borderLight: "#e9ecef",
+  bg:          "#f8f9fa",
+  white:       "#ffffff",
+};
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const S = {
+  page: {
     minHeight: "100vh",
-    background: "linear-gradient(160deg, #060d19 0%, #0b1628 50%, #071020 100%)",
-    fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
-    color: "#c8d8e8",
+    background: "#f5f7fa",
+    fontFamily: "'Noto Sans', 'Segoe UI', Arial, sans-serif",
+    color: C.text,
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "stretch",
+  },
+
+  // ── Top nav bar ──────────────────────────────────────────────────────────────
+  topBar: {
+    background: C.blue,
+    padding: "0 24px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 56,
+    flexShrink: 0,
+  },
+  topBarBrand: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    textDecoration: "none" as const,
+  },
+  topBarLogoBox: {
+    width: 36,
+    height: 36,
+    background: "rgba(255,255,255,0.15)",
+    borderRadius: 6,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 20,
+  },
+  topBarName: {
+    color: "#ffffff",
+    fontWeight: 700,
+    fontSize: 17,
+    lineHeight: 1.2,
+  },
+  topBarTagline: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 10,
+    letterSpacing: 0.4,
+    display: "block",
+    marginTop: 1,
+  },
+  topBarBadge: {
+    background: "rgba(255,255,255,0.15)",
+    border: "1px solid rgba(255,255,255,0.3)",
+    borderRadius: 4,
+    padding: "4px 10px",
+    color: "#ffffff",
+    fontSize: 11,
+    letterSpacing: 0.8,
+    fontWeight: 500,
+  },
+
+  // ── Main content ─────────────────────────────────────────────────────────────
+  main: {
+    flex: 1,
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "center",
-    padding: "32px 16px 60px",
+    padding: "36px 16px 64px",
   },
-  header: {
+
+  // ── Hero ─────────────────────────────────────────────────────────────────────
+  hero: {
     textAlign: "center" as const,
-    marginBottom: 40,
+    marginBottom: 28,
+    maxWidth: 640,
+    width: "100%",
   },
-  badge: {
+  heroBadge: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 8,
-    background: "rgba(255,180,0,0.08)",
-    border: "1px solid rgba(255,180,0,0.25)",
-    borderRadius: 4,
-    padding: "4px 12px",
-    fontSize: 11,
-    color: "#f0b400",
-    letterSpacing: 2,
-    marginBottom: 16,
-    textTransform: "uppercase" as const,
+    gap: 6,
+    background: C.greenLight,
+    border: `1px solid ${C.greenBorder}`,
+    borderRadius: 20,
+    padding: "5px 14px",
+    fontSize: 12,
+    color: C.greenDark,
+    fontWeight: 600,
+    marginBottom: 14,
+    letterSpacing: 0.2,
   },
-  title: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
-    fontSize: "clamp(22px, 5vw, 34px)",
+  h1: {
+    fontSize: "clamp(20px, 4vw, 28px)",
     fontWeight: 700,
-    color: "#e8f0fa",
-    letterSpacing: -0.5,
+    color: C.text,
     margin: "0 0 8px",
+    lineHeight: 1.3,
   },
-  subtitle: {
-    fontSize: 13,
-    color: "#5a7a9a",
-    letterSpacing: 0.5,
+  heroSub: {
+    fontSize: 14,
+    color: C.muted,
+    margin: 0,
+    lineHeight: 1.65,
   },
+
+  // ── Card ─────────────────────────────────────────────────────────────────────
   card: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 12,
-    padding: 32,
+    background: C.white,
+    border: `1px solid ${C.border}`,
+    borderRadius: 10,
+    padding: "28px 32px",
     width: "100%",
     maxWidth: 640,
-    boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+    boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+    marginBottom: 20,
   },
+
+  // ── Dropzone ─────────────────────────────────────────────────────────────────
   dropzone: (active: boolean) => ({
-    border: `2px dashed ${active ? "#f0b400" : "rgba(255,255,255,0.12)"}`,
-    borderRadius: 10,
-    padding: "48px 24px",
-    textAlign: "center" as const,
-    cursor: "pointer",
-    transition: "all 0.2s",
-    background: active ? "rgba(240,180,0,0.04)" : "transparent",
-  }),
-  uploadIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-    display: "block",
-    opacity: 0.6,
-  },
-  uploadText: {
-    fontSize: 15,
-    color: "#8aabb0",
-    marginBottom: 8,
-  },
-  uploadSub: {
-    fontSize: 12,
-    color: "#3a5a6a",
-  },
-  browseBtn: {
-    display: "inline-block",
-    marginTop: 20,
-    padding: "10px 28px",
-    background: "rgba(240,180,0,0.1)",
-    border: "1px solid rgba(240,180,0,0.3)",
-    borderRadius: 6,
-    color: "#f0b400",
-    fontSize: 13,
-    cursor: "pointer",
-    letterSpacing: 1,
-    textTransform: "uppercase" as const,
-    transition: "all 0.2s",
-  },
-  errorBox: {
-    background: "rgba(220,50,50,0.08)",
-    border: "1px solid rgba(220,80,80,0.25)",
+    border: `2px dashed ${active ? C.blue : C.border}`,
     borderRadius: 8,
-    padding: "14px 18px",
-    color: "#ff7a7a",
-    fontSize: 13,
-    marginTop: 20,
-    whiteSpace: "pre-line" as const,
-    lineHeight: 1.6,
-  },
-  analyzing: {
+    padding: "44px 24px",
     textAlign: "center" as const,
-    padding: "48px 0",
+    cursor: "pointer",
+    transition: "all 0.18s",
+    background: active ? C.blueLight : C.bg,
+  }),
+  dzIcon: {
+    fontSize: 40,
+    marginBottom: 10,
+    display: "block",
+    filter: "grayscale(0.2)",
   },
-  spinner: {
-    width: 48,
-    height: 48,
-    border: "3px solid rgba(255,255,255,0.06)",
-    borderTop: "3px solid #f0b400",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
-    margin: "0 auto 20px",
+  dzTitle: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: C.text,
+    marginBottom: 4,
   },
-  progressText: {
+  dzSub: {
     fontSize: 13,
-    color: "#5a8aaa",
-    letterSpacing: 0.5,
+    color: C.muted,
+    marginBottom: 18,
+    lineHeight: 1.5,
   },
-  resultHeader: {
+  dzBtn: {
+    display: "inline-block",
+    padding: "10px 28px",
+    background: C.blue,
+    border: "none",
+    borderRadius: 6,
+    color: C.white,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: "pointer",
+    letterSpacing: 0.2,
+    transition: "background 0.15s",
+  },
+  dzPrivacy: {
     display: "flex",
     alignItems: "center",
-    gap: 16,
-    marginBottom: 28,
-    paddingBottom: 20,
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 18,
+    fontSize: 12,
+    color: C.muted,
+    lineHeight: 1.5,
   },
-  statusBadge: (ok: boolean) => ({
-    flexShrink: 0,
-    width: 56,
-    height: 56,
+
+  // ── Error ────────────────────────────────────────────────────────────────────
+  errorBox: {
+    background: C.redLight,
+    border: `1px solid ${C.redBorder}`,
+    borderRadius: 6,
+    padding: "12px 16px",
+    color: C.redDark,
+    fontSize: 13,
+    marginTop: 16,
+    lineHeight: 1.65,
+    whiteSpace: "pre-line" as const,
+  },
+  infoBox: {
+    background: C.blueLight,
+    border: `1px solid ${C.blueBorder}`,
+    borderRadius: 6,
+    padding: "10px 14px",
+    color: "#084298",
+    fontSize: 12,
+    marginTop: 12,
+  },
+
+  // ── Analyzing ────────────────────────────────────────────────────────────────
+  analyzing: {
+    textAlign: "center" as const,
+    padding: "52px 0",
+  },
+  spinner: {
+    width: 44,
+    height: 44,
+    border: `3px solid ${C.borderLight}`,
+    borderTop: `3px solid ${C.blue}`,
     borderRadius: "50%",
-    background: ok ? "rgba(30,200,90,0.12)" : "rgba(220,50,50,0.12)",
-    border: `2px solid ${ok ? "#1ec85a" : "#dc3c3c"}`,
+    animation: "spin 0.8s linear infinite",
+    margin: "0 auto 18px",
+  },
+  progressText: {
+    fontSize: 14,
+    color: C.muted,
+  },
+
+  // ── Result ───────────────────────────────────────────────────────────────────
+  resultHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 16,
+    marginBottom: 24,
+    paddingBottom: 20,
+    borderBottom: `1px solid ${C.border}`,
+  },
+  resultIcon: (ok: boolean) => ({
+    flexShrink: 0,
+    width: 54,
+    height: 54,
+    borderRadius: "50%",
+    background: ok ? C.greenLight : C.redLight,
+    border: `2px solid ${ok ? C.greenBorder : C.redBorder}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: 26,
   }),
-  statusTitle: (ok: boolean) => ({
-    fontFamily: "'Georgia', serif",
+  resultTitle: (ok: boolean) => ({
     fontSize: 20,
     fontWeight: 700,
-    color: ok ? "#3de878" : "#ff6b6b",
-    marginBottom: 4,
+    color: ok ? C.greenDark : C.redDark,
+    margin: "0 0 4px",
   }),
-  statusSub: {
-    fontSize: 12,
-    color: "#4a6a7a",
+  resultSub: {
+    fontSize: 13,
+    color: C.muted,
+    margin: "0 0 8px",
+    lineHeight: 1.5,
   },
+  resultPill: (ok: boolean) => ({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "3px 12px",
+    background: ok ? C.greenLight : C.redLight,
+    color: ok ? C.greenDark : C.redDark,
+    border: `1px solid ${ok ? C.greenBorder : C.redBorder}`,
+    borderRadius: 20,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: 0.3,
+  }),
+
+  // ── Buttons ──────────────────────────────────────────────────────────────────
+  downloadBtn: {
+    display: "block",
+    width: "100%",
+    padding: "13px",
+    background: C.green,
+    border: "none",
+    borderRadius: 6,
+    color: C.white,
+    fontSize: 15,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    cursor: "pointer",
+    textDecoration: "none" as const,
+    textAlign: "center" as const,
+    transition: "background 0.15s",
+    marginBottom: 10,
+  },
+  resetBtn: {
+    display: "block",
+    width: "100%",
+    padding: "11px",
+    background: "transparent",
+    border: `1px solid ${C.border}`,
+    borderRadius: 6,
+    color: C.muted,
+    fontSize: 14,
+    fontFamily: "inherit",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    marginBottom: 24,
+  },
+
+  // ── Info Grid ────────────────────────────────────────────────────────────────
   sectionLabel: {
     fontSize: 10,
-    letterSpacing: 2,
+    fontWeight: 700,
+    letterSpacing: 1.5,
     textTransform: "uppercase" as const,
-    color: "#3a6080",
-    marginBottom: 12,
+    color: C.muted,
+    marginBottom: 10,
   },
   infoGrid: {
     display: "grid",
@@ -193,98 +361,169 @@ const styles = {
     marginBottom: 20,
   },
   infoCell: {
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(255,255,255,0.05)",
+    background: C.bg,
+    border: `1px solid ${C.borderLight}`,
     borderRadius: 6,
-    padding: "10px 12px",
+    padding: "10px 14px",
   },
   infoCellFull: {
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(255,255,255,0.05)",
+    background: C.bg,
+    border: `1px solid ${C.borderLight}`,
     borderRadius: 6,
-    padding: "10px 12px",
+    padding: "10px 14px",
     gridColumn: "1 / -1",
   },
   cellLabel: {
-    fontSize: 9,
-    letterSpacing: 1.5,
+    fontSize: 10,
+    letterSpacing: 1,
     textTransform: "uppercase" as const,
-    color: "#3a5a70",
+    color: C.muted,
     marginBottom: 4,
   },
   cellValue: {
     fontSize: 12,
-    color: "#9ab8cc",
+    color: C.text,
     wordBreak: "break-all" as const,
+    lineHeight: 1.5,
   },
   divider: {
     border: "none" as const,
-    borderTop: "1px solid rgba(255,255,255,0.05)",
+    borderTop: `1px solid ${C.border}`,
     margin: "20px 0",
   },
-  downloadBtn: {
-    display: "block",
+
+  // ── Steps (how it works) ─────────────────────────────────────────────────────
+  stepsRow: {
+    maxWidth: 640,
     width: "100%",
-    padding: "14px",
-    background: "linear-gradient(135deg, #1a6e35 0%, #0f4a24 100%)",
-    border: "1px solid rgba(50,200,100,0.3)",
-    borderRadius: 8,
-    color: "#4de890",
-    fontSize: 14,
-    fontFamily: "'IBM Plex Mono', monospace",
-    letterSpacing: 1,
-    textTransform: "uppercase" as const,
-    cursor: "pointer",
-    textDecoration: "none" as const,
-    textAlign: "center" as const,
-    transition: "all 0.2s",
-    marginBottom: 12,
-  },
-  resetBtn: {
-    display: "block",
-    width: "100%",
-    padding: "11px",
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 8,
-    color: "#4a6a80",
-    fontSize: 12,
-    fontFamily: "'IBM Plex Mono', monospace",
-    letterSpacing: 1,
-    cursor: "pointer",
-    textTransform: "uppercase" as const,
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 12,
     marginBottom: 20,
   },
-  footer: {
-    marginTop: 48,
+  stepCard: {
+    background: C.white,
+    border: `1px solid ${C.border}`,
+    borderRadius: 8,
+    padding: "16px 14px",
     textAlign: "center" as const,
+  },
+  stepNum: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 28,
+    height: 28,
+    background: C.blueLight,
+    border: `1px solid ${C.blueBorder}`,
+    borderRadius: "50%",
+    color: C.blue,
+    fontSize: 13,
+    fontWeight: 700,
+    marginBottom: 10,
+  },
+  stepTitle: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: C.text,
+    marginBottom: 6,
+  },
+  stepBody: {
     fontSize: 11,
-    color: "#1e3a4a",
+    color: C.muted,
+    lineHeight: 1.6,
+  },
+
+  // ── SEO Content ──────────────────────────────────────────────────────────────
+  seoWrap: {
+    maxWidth: 640,
+    width: "100%",
+    marginTop: 40,
+  },
+  seoSection: {
+    background: C.white,
+    border: `1px solid ${C.border}`,
+    borderRadius: 8,
+    padding: "24px 28px",
+    marginBottom: 16,
+  },
+  seoH2: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: C.text,
+    margin: "0 0 12px",
+    lineHeight: 1.35,
+  },
+  seoP: {
+    fontSize: 13,
+    color: C.muted,
+    margin: "0 0 10px",
+    lineHeight: 1.8,
+  },
+  seoUl: {
+    paddingLeft: 20,
+    margin: 0,
+  },
+  seoLi: {
+    fontSize: 13,
+    color: C.muted,
+    marginBottom: 6,
+    lineHeight: 1.65,
+  },
+  faqItem: {
+    borderBottom: `1px solid ${C.borderLight}`,
+    paddingBottom: 14,
+    marginBottom: 14,
+  },
+  faqQ: {
+    cursor: "pointer",
+    color: C.text,
+    fontWeight: 600,
+    fontSize: 13,
+  },
+  faqA: {
+    fontSize: 13,
+    color: C.muted,
+    margin: "8px 0 0",
+    lineHeight: 1.7,
+  },
+
+  // ── Footer ───────────────────────────────────────────────────────────────────
+  footer: {
+    background: C.white,
+    borderTop: `1px solid ${C.border}`,
+    padding: "16px 24px",
+    textAlign: "center" as const,
+    fontSize: 12,
+    color: C.muted,
     lineHeight: 1.8,
   },
 };
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export default function AadhaarVerifier() {
-  const [libsReady, setLibsReady] = useState(false);
-  const [libError, setLibError] = useState<string | null>(null);
-  const [step, setStep] = useState<Step>("upload");
-  const [dragging, setDragging] = useState(false);
-  const [result, setResult] = useState<SignatureResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [verifiedUrl, setVerifiedUrl] = useState<string | null>(null);
-  const [progress, setProgress] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const libsLoadingRef = useRef(false);
+export default function AadhaarVerifier() {
+  const [libsReady, setLibsReady]   = useState(false);
+  const [libsLoading, setLibsLoading] = useState(false);
+  const [libError, setLibError]     = useState<string | null>(null);
+  const [step, setStep]             = useState<Step>("upload");
+  const [dragging, setDragging]     = useState(false);
+  const [result, setResult]         = useState<SignatureResult | null>(null);
+  const [error, setError]           = useState<string | null>(null);
+  const [verifiedUrl, setVerifiedUrl] = useState<string | null>(null);
+  const [progress, setProgress]     = useState("");
+  const fileRef                     = useRef<HTMLInputElement>(null);
+  const libsLoadingRef              = useRef(false);
+
   const loadLibs = useCallback(() => {
     if (libsReady || libsLoadingRef.current) return;
     libsLoadingRef.current = true;
-    const FORGE = "https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js";
+    setLibsLoading(true);
+    const FORGE  = "https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js";
     const PDFLIB = "https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js";
     Promise.all([loadScript(FORGE), loadScript(PDFLIB)])
-      .then(() => setLibsReady(true))
-      .catch(() => setLibError("Failed to load cryptographic libraries. Check your internet connection."));
+      .then(() => { setLibsReady(true); setLibsLoading(false); })
+      .catch(() => { setLibError("Failed to load cryptographic libraries. Check your internet connection."); setLibsLoading(false); });
   }, [libsReady]);
 
   const processFile = useCallback(async (file: File | null | undefined) => {
@@ -293,7 +532,7 @@ export default function AadhaarVerifier() {
       return;
     }
     if (!libsReady) {
-      setError("Libraries loading, please wait a moment…");
+      setError("Libraries are still loading — please wait a moment, then try again.");
       return;
     }
 
@@ -304,7 +543,7 @@ export default function AadhaarVerifier() {
 
     try {
       setProgress("Reading PDF…");
-      const buffer = await file!.arrayBuffer();
+      const buffer   = await file!.arrayBuffer();
       const pdfBytes = new Uint8Array(buffer);
 
       setProgress("Extracting digital signature…");
@@ -327,13 +566,13 @@ export default function AadhaarVerifier() {
         try {
           let tickPngBytes: Uint8Array | undefined;
           try {
-            const res = await fetch('/tick.png');
-            tickPngBytes = new Uint8Array(await res.arrayBuffer());
-          } catch { /* use drawn fallback if fetch fails */ }
+            const r = await fetch("/tick.png");
+            tickPngBytes = new Uint8Array(await r.arrayBuffer());
+          } catch { /* use drawn fallback */ }
           const stamped = await addVerificationStamp(pdfBytes, verifyResult, window.PDFLib, tickPngBytes);
           const blob = new Blob([stamped as BlobPart], { type: "application/pdf" });
           setVerifiedUrl(URL.createObjectURL(blob));
-        } catch (_e) {
+        } catch {
           const blob = new Blob([pdfBytes], { type: "application/pdf" });
           setVerifiedUrl(URL.createObjectURL(blob));
         }
@@ -365,336 +604,332 @@ export default function AadhaarVerifier() {
     d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
   return (
-    <div style={styles.root}>
+    <div style={S.page}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         * { box-sizing: border-box; }
         a:hover { opacity: 0.85; }
-        button:hover { filter: brightness(1.15); }
+        button:hover { filter: brightness(0.93); }
+        details summary::-webkit-details-marker { display: none; }
       `}</style>
 
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.badge}>
-          <span>🔐</span> Cryptographic Verification
+      {/* ── Top Navigation Bar ── */}
+      <nav style={S.topBar}>
+        <div style={S.topBarBrand}>
+          <div style={S.topBarLogoBox}>🔐</div>
+          <div>
+            <span style={S.topBarName}>Aadhaar PDF Verifier</span>
+            <span style={S.topBarTagline}>UIDAI Digital Signature Tool</span>
+          </div>
         </div>
-        <h1 style={styles.title}>Aadhaar Signature Verifier</h1>
-        <p style={styles.subtitle}>
-          Generate Signature Valid Aadhaar PDF with Green Tick — Free · No Adobe · Works on Mobile
-        </p>
-      </header>
+        <div style={S.topBarBadge}>🔒 100% Private</div>
+      </nav>
 
-      {/* Main Card */}
-      <div style={styles.card}>
-        {/* STEP: UPLOAD */}
-        {step === "upload" && (
-          <div style={{ animation: "fadeUp 0.3s ease" }}>
-            <div
-              style={styles.dropzone(dragging)}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-                loadLibs();
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={onDrop}
-              onClick={() => { loadLibs(); fileRef.current?.click(); }}
-            >
-              <span style={styles.uploadIcon}>📄</span>
-              <p style={styles.uploadText}>Drop your Aadhaar PDF here</p>
-              <p style={styles.uploadSub}>or click to browse — processed entirely in your browser</p>
-              <div style={styles.browseBtn}>Browse PDF</div>
-            </div>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              style={{ display: "none" }}
-              onChange={(e) => processFile(e.target.files?.[0])}
-            />
-            {(error || libError) && <div style={styles.errorBox}>{error || libError}</div>}
-            {libsLoadingRef.current && !libsReady && !libError && (
-              <p style={{ ...styles.progressText, textAlign: "center", marginTop: 16 }}>
-                ⏳ Loading cryptographic libraries…
-              </p>
-            )}
+      {/* ── Main Content ── */}
+      <main style={S.main}>
+
+        {/* Hero */}
+        <div style={S.hero}>
+          <div style={S.heroBadge}>
+            ✓ Free · No Adobe · Works on Mobile
           </div>
-        )}
+          <h1 style={S.h1}>Aadhaar Signature Verifier</h1>
+          <p style={S.heroSub}>
+            Generate a Signature Valid Aadhaar PDF with Green Tick — verify the UIDAI digital
+            signature and download a stamped copy, instantly in your browser.
+          </p>
+        </div>
 
-        {/* STEP: ANALYZING */}
-        {step === "analyzing" && (
-          <div style={styles.analyzing}>
-            <div style={styles.spinner} />
-            <p style={styles.progressText}>{progress || "Analyzing…"}</p>
-          </div>
-        )}
+        {/* ── Tool Card ── */}
+        <div style={S.card}>
 
-        {/* STEP: RESULT */}
-        {step === "result" && result && (
-          <div style={{ animation: "fadeUp 0.4s ease" }}>
-            {/* Status Header */}
-            <div style={styles.resultHeader}>
-              <div style={styles.statusBadge(result.verified)}>
-                {result.verified ? "✓" : "✗"}
-              </div>
-              <div>
-                <div style={styles.statusTitle(result.verified)}>
-                  {result.verified ? "Signature Verified" : "Verification Failed"}
-                </div>
-                <div style={styles.statusSub}>
-                  {result.verified
-                    ? result.hasUIDAI
-                      ? "Valid UIDAI digital signature detected"
-                      : "Signature is cryptographically valid"
-                    : "Could not verify the digital signature"}
-                </div>
-              </div>
-            </div>
-
-            {/* Actions — top */}
-            {verifiedUrl && result.verified ? (
-              <a
-                href={verifiedUrl}
-                download={result.fileName.replace(".pdf", "_verified.pdf")}
-                style={styles.downloadBtn}
+          {/* STEP: UPLOAD */}
+          {step === "upload" && (
+            <div style={{ animation: "fadeUp 0.25s ease" }}>
+              <div
+                style={S.dropzone(dragging)}
+                onDragOver={(e) => { e.preventDefault(); setDragging(true); loadLibs(); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={onDrop}
+                onClick={() => { loadLibs(); fileRef.current?.click(); }}
               >
-                ↓ Download Stamped PDF
-              </a>
-            ) : result.verified ? (
-              <div style={{ ...styles.errorBox, marginBottom: 12 }}>
-                Stamp could not be embedded — but the signature is verified.
+                <span style={S.dzIcon}>📄</span>
+                <p style={S.dzTitle}>Drop your Aadhaar PDF here</p>
+                <p style={S.dzSub}>
+                  Drag &amp; drop or click to browse — processed entirely in your browser
+                </p>
+                <div style={S.dzBtn}>Browse PDF</div>
               </div>
-            ) : (
-              <div style={{ ...styles.errorBox, marginBottom: 12 }}>
-                Verification failed. The PDF may have been tampered with, or may not be a genuine UIDAI Aadhaar document.
-              </div>
-            )}
-            <button style={styles.resetBtn} onClick={reset}>
-              ← Verify Another PDF
-            </button>
 
-            {/* Signer Certificate */}
-            <p style={styles.sectionLabel}>Signer Certificate</p>
-            <div style={styles.infoGrid}>
-              <div style={styles.infoCellFull}>
-                <div style={styles.cellLabel}>Issued By (Issuer)</div>
-                <div style={styles.cellValue}>
-                  {result.signerCertInfo.issuerO || result.signerCertInfo.issuerCN || "—"}
-                  {result.signerCertInfo.issuerCN && result.signerCertInfo.issuerO
-                    ? ` — ${result.signerCertInfo.issuerCN}`
-                    : ""}
+              <div style={S.dzPrivacy}>
+                🔒 Your file never leaves your device — 100% client-side processing
+              </div>
+
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                style={{ display: "none" }}
+                onChange={(e) => processFile(e.target.files?.[0])}
+              />
+
+              {(error || libError) && (
+                <div style={S.errorBox}>{error || libError}</div>
+              )}
+              {libsLoading && !libsReady && !libError && (
+                <div style={S.infoBox}>
+                  ⏳ Loading cryptographic libraries…
                 </div>
-              </div>
-              <div style={styles.infoCellFull}>
-                <div style={styles.cellLabel}>Subject (Certificate Holder)</div>
-                <div style={styles.cellValue}>
-                  {result.signerCertInfo.subjectCN || result.signerCertInfo.subjectO || "—"}
-                </div>
-              </div>
-              <div style={styles.infoCell}>
-                <div style={styles.cellLabel}>Valid From</div>
-                <div style={styles.cellValue}>{fmt(result.signerCertInfo.validFrom)}</div>
-              </div>
-              <div style={styles.infoCell}>
-                <div style={styles.cellLabel}>Valid Until</div>
-                <div style={styles.cellValue}>{fmt(result.signerCertInfo.validTo)}</div>
-              </div>
-              <div style={styles.infoCellFull}>
-                <div style={styles.cellLabel}>Certificate Serial Number</div>
-                <div style={styles.cellValue}>
-                  {result.signerCertInfo.serialNumber?.match(/.{1,8}/g)?.join(" ") || "—"}
-                </div>
-              </div>
+              )}
             </div>
+          )}
 
-            {/* Chain Info */}
-            <p style={styles.sectionLabel}>Certificate Chain</p>
-            <div style={styles.infoGrid}>
-              <div style={styles.infoCell}>
-                <div style={styles.cellLabel}>Chain Depth</div>
-                <div style={styles.cellValue}>
-                  {result.certCount} certificate{result.certCount !== 1 ? "s" : ""}
+          {/* STEP: ANALYZING */}
+          {step === "analyzing" && (
+            <div style={S.analyzing}>
+              <div style={S.spinner} />
+              <p style={S.progressText}>{progress || "Analyzing…"}</p>
+            </div>
+          )}
+
+          {/* STEP: RESULT */}
+          {step === "result" && result && (
+            <div style={{ animation: "fadeUp 0.3s ease" }}>
+
+              {/* Status header */}
+              <div style={S.resultHeader}>
+                <div style={S.resultIcon(result.verified)}>
+                  {result.verified ? "✓" : "✗"}
+                </div>
+                <div>
+                  <p style={S.resultTitle(result.verified)}>
+                    {result.verified ? "Signature Verified" : "Verification Failed"}
+                  </p>
+                  <p style={S.resultSub}>
+                    {result.verified
+                      ? result.hasUIDAI
+                        ? "Valid UIDAI digital signature detected in this PDF"
+                        : "Signature is cryptographically valid"
+                      : "Could not verify the digital signature in this PDF"}
+                  </p>
+                  {result.hasUIDAI && (
+                    <span style={S.resultPill(true)}>✓ UIDAI Certificate Detected</span>
+                  )}
                 </div>
               </div>
-              <div style={styles.infoCell}>
-                <div style={styles.cellLabel}>Root CA</div>
-                <div style={styles.cellValue}>
-                  {result.rootCertInfo?.issuerO || result.rootCertInfo?.issuerCN || "—"}
+
+              {/* Action buttons — top */}
+              {verifiedUrl && result.verified ? (
+                <a
+                  href={verifiedUrl}
+                  download={result.fileName.replace(".pdf", "_verified.pdf")}
+                  style={S.downloadBtn}
+                >
+                  ↓ Download Stamped PDF
+                </a>
+              ) : result.verified ? (
+                <div style={{ ...S.errorBox, marginBottom: 12 }}>
+                  Stamp could not be embedded — but the signature is verified.
+                </div>
+              ) : (
+                <div style={{ ...S.errorBox, marginBottom: 12 }}>
+                  Verification failed. The PDF may have been tampered with, or may not be a genuine
+                  UIDAI Aadhaar document.
+                </div>
+              )}
+              <button style={S.resetBtn} onClick={reset}>
+                ← Verify Another PDF
+              </button>
+
+              {/* Signer Certificate */}
+              <p style={S.sectionLabel}>Signer Certificate</p>
+              <div style={S.infoGrid}>
+                <div style={S.infoCellFull}>
+                  <div style={S.cellLabel}>Issued By (Issuer)</div>
+                  <div style={S.cellValue}>
+                    {result.signerCertInfo.issuerO || result.signerCertInfo.issuerCN || "—"}
+                    {result.signerCertInfo.issuerCN && result.signerCertInfo.issuerO
+                      ? ` — ${result.signerCertInfo.issuerCN}`
+                      : ""}
+                  </div>
+                </div>
+                <div style={S.infoCellFull}>
+                  <div style={S.cellLabel}>Subject (Certificate Holder)</div>
+                  <div style={S.cellValue}>
+                    {result.signerCertInfo.subjectCN || result.signerCertInfo.subjectO || "—"}
+                  </div>
+                </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>Valid From</div>
+                  <div style={S.cellValue}>{fmt(result.signerCertInfo.validFrom)}</div>
+                </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>Valid Until</div>
+                  <div style={S.cellValue}>{fmt(result.signerCertInfo.validTo)}</div>
+                </div>
+                <div style={S.infoCellFull}>
+                  <div style={S.cellLabel}>Certificate Serial Number</div>
+                  <div style={S.cellValue}>
+                    {result.signerCertInfo.serialNumber?.match(/.{1,8}/g)?.join(" ") || "—"}
+                  </div>
                 </div>
               </div>
-              <div style={styles.infoCell}>
-                <div style={styles.cellLabel}>UIDAI Certificate</div>
-                <div style={{ ...styles.cellValue, color: result.hasUIDAI ? "#3de878" : "#ff9a6b" }}>
-                  {result.hasUIDAI ? "✓ Detected" : "Not detected"}
+
+              {/* Certificate Chain */}
+              <p style={S.sectionLabel}>Certificate Chain</p>
+              <div style={S.infoGrid}>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>Chain Depth</div>
+                  <div style={S.cellValue}>
+                    {result.certCount} certificate{result.certCount !== 1 ? "s" : ""}
+                  </div>
+                </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>Root CA</div>
+                  <div style={S.cellValue}>
+                    {result.rootCertInfo?.issuerO || result.rootCertInfo?.issuerCN || "—"}
+                  </div>
+                </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>UIDAI Certificate</div>
+                  <div style={{
+                    ...S.cellValue,
+                    color: result.hasUIDAI ? C.green : C.red,
+                    fontWeight: 600,
+                  }}>
+                    {result.hasUIDAI ? "✓ Detected" : "Not detected"}
+                  </div>
+                </div>
+                <div style={S.infoCell}>
+                  <div style={S.cellLabel}>Signature Size</div>
+                  <div style={S.cellValue}>{(result.sigSize / 1024).toFixed(1)} KB</div>
                 </div>
               </div>
-              <div style={styles.infoCell}>
-                <div style={styles.cellLabel}>Signature Size</div>
-                <div style={styles.cellValue}>{(result.sigSize / 1024).toFixed(1)} KB</div>
+
+              {/* File Info */}
+              <hr style={S.divider} />
+              <p style={S.sectionLabel}>File Details</p>
+              <div style={S.infoGrid}>
+                <div style={S.infoCellFull}>
+                  <div style={S.cellLabel}>File</div>
+                  <div style={S.cellValue}>{result.fileName} ({result.fileSize})</div>
+                </div>
+                <div style={S.infoCellFull}>
+                  <div style={S.cellLabel}>Signed Byte Ranges</div>
+                  <div style={S.cellValue}>[{result.byteRange.join(", ")}]</div>
+                </div>
               </div>
+
+              <hr style={S.divider} />
             </div>
+          )}
+        </div>
 
-            {/* File Info */}
-            <hr style={styles.divider} />
-            <p style={styles.sectionLabel}>File Details</p>
-            <div style={styles.infoGrid}>
-              <div style={styles.infoCellFull}>
-                <div style={styles.cellLabel}>File</div>
-                <div style={styles.cellValue}>{result.fileName} ({result.fileSize})</div>
-              </div>
-              <div style={styles.infoCellFull}>
-                <div style={styles.cellLabel}>Signed Byte Ranges</div>
-                <div style={styles.cellValue}>[{result.byteRange.join(", ")}]</div>
-              </div>
-            </div>
-
-            <hr style={styles.divider} />
-          </div>
-        )}
-      </div>
-
-      {/* How it Works */}
-      <div
-        style={{
-          maxWidth: 640,
-          width: "100%",
-          marginTop: 32,
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 12,
-        }}
-      >
-        {[
-          {
-            icon: "🔍",
-            title: "Extract",
-            body: "Locates the ByteRange & PKCS#7 Contents field embedded in the PDF by UIDAI",
-          },
-          {
-            icon: "🔐",
-            title: "Verify",
-            body: "Parses the certificate chain and validates the cryptographic signature with forge.js",
-          },
-          {
-            icon: "📄",
-            title: "Stamp",
-            body: "Appends a visual verification stamp to the PDF using pdf-lib without breaking the original signature",
-          },
-        ].map((item) => (
-          <div
-            key={item.title}
-            style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.05)",
-              borderRadius: 10,
-              padding: "16px 14px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 22, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#8aabb8", marginBottom: 6 }}>
-              {item.title}
-            </div>
-            <div style={{ fontSize: 11, color: "#2e4e5e", lineHeight: 1.6 }}>{item.body}</div>
-          </div>
-        ))}
-      </div>
-
-      <p style={styles.footer}>
-        100% client-side • No data leaves your browser
-      </p>
-
-      {/* SEO content — visible text Google needs to rank the page */}
-      <div style={{ maxWidth: 640, width: "100%", marginTop: 64, color: "#3a5a6a", fontSize: 14, lineHeight: 1.85 }}>
-        <section style={{ marginBottom: 40 }}>
-          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: 17, color: "#5a7a8a", marginBottom: 12, fontWeight: 700 }}>
-            Why does my Aadhaar PDF show "Signature Not Verified"?
-          </h2>
-          <p style={{ margin: "0 0 12px" }}>
-            Every e-Aadhaar downloaded from UIDAI's portal is digitally signed using a certificate
-            issued under India's Controller of Certifying Authorities (CCA) PKI. However, Adobe Reader,
-            Chrome, and mobile PDF viewers do not have CCA India's root certificate in their trust store
-            by default — so the signature appears as "Validity Unknown" even though it is cryptographically valid.
-          </p>
-          <p style={{ margin: 0 }}>
-            This is not a problem with your Aadhaar. It is a gap between India's PKI and global PDF
-            software. Government offices and banks that ask for a "signature verified" Aadhaar are asking
-            you to bridge this gap — traditionally only possible with Adobe Acrobat on desktop.
-          </p>
-        </section>
-
-        <section style={{ marginBottom: 40 }}>
-          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: 17, color: "#5a7a8a", marginBottom: 12, fontWeight: 700 }}>
-            How to generate a Signature Valid Aadhaar PDF with green tick
-          </h2>
-          <p style={{ margin: "0 0 12px" }}>
-            This tool runs entirely in your browser. When you upload your Aadhaar PDF, it extracts the
-            PKCS#7 digital signature embedded by UIDAI, parses the certificate chain (leaf certificate →
-            UIDAI CA → CCA India root), and verifies each link cryptographically using the forge.js
-            library. It then embeds a "Signature Valid" stamp into your PDF using pdf-lib, including the
-            issuing CA name, certificate serial number, and verification timestamp.
-          </p>
-          <p style={{ margin: 0 }}>
-            Your Aadhaar PDF never leaves your device. No data is sent to any server. You can verify this
-            by disconnecting from the internet after the page loads — the tool will still work.
-          </p>
-        </section>
-
-        <section style={{ marginBottom: 40 }}>
-          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: 17, color: "#5a7a8a", marginBottom: 12, fontWeight: 700 }}>
-            Where is a verified Aadhaar required?
-          </h2>
-          <ul style={{ paddingLeft: 20, margin: 0 }}>
-            {[
-              "Passport Seva Kendra applications requiring Aadhaar as address proof",
-              "Bank account KYC with e-Aadhaar submission",
-              "Government scheme enrollment portals",
-              "Employment verification processes",
-              'Any office that asks for a "digitally signed" or "signature verified" Aadhaar printout',
-            ].map((item) => (
-              <li key={item} style={{ marginBottom: 8 }}>{item}</li>
-            ))}
-          </ul>
-        </section>
-
-        <section style={{ marginBottom: 40 }}>
-          <h2 style={{ fontFamily: "'Georgia', serif", fontSize: 17, color: "#5a7a8a", marginBottom: 20, fontWeight: 700 }}>
-            Frequently Asked Questions
-          </h2>
+        {/* ── How it works (3 steps) ── */}
+        <div style={S.stepsRow}>
           {[
-            {
-              q: "How do I get the green tick on my Aadhaar PDF without Adobe Acrobat?",
-              a: "Upload your Aadhaar PDF to this free tool. It verifies the UIDAI cryptographic signature in your browser and generates a downloadable PDF with a 'Signature Valid' stamp. No Adobe required, works on mobile, and your file never leaves your device.",
-            },
-            {
-              q: "Is it safe to use my Aadhaar PDF with this tool?",
-              a: "This tool processes your Aadhaar PDF entirely inside your browser using JavaScript. Your file is never uploaded to any server — it never leaves your device. You can verify this by turning off your internet after uploading and the tool will still work.",
-            },
-            {
-              q: "Will passport offices and banks accept this verified Aadhaar PDF?",
-              a: "The tool adds a visible verification stamp to your Aadhaar PDF showing the UIDAI certificate details, issuing authority, and verification timestamp. The original UIDAI digital signature remains intact in the PDF.",
-            },
-            {
-              q: "Does this work on mobile phones?",
-              a: "Yes. This tool works on all modern mobile browsers (Android and iOS). No app download required — open the page in any browser, upload your Aadhaar PDF, and download the verified copy.",
-            },
-            {
-              q: "Why does the Aadhaar PDF show a yellow question mark instead of a green tick?",
-              a: "The yellow question mark means 'Validity Unknown' — Adobe Reader cannot verify the UIDAI certificate chain because CCA India's root certificate is not in its default trust store. This tool adds the green tick by cryptographically verifying the signature and embedding a permanent stamp in the PDF.",
-            },
-          ].map(({ q, a }) => (
-            <details key={q} style={{ marginBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: 16 }}>
-              <summary style={{ cursor: "pointer", color: "#5a7a8a", fontWeight: 600, fontSize: 13, listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                {q}
-                <span style={{ marginLeft: 12, flexShrink: 0, opacity: 0.5 }}>▾</span>
-              </summary>
-              <p style={{ margin: "10px 0 0", fontSize: 13, color: "#2e4e5e" }}>{a}</p>
-            </details>
+            { n: "1", title: "Extract", body: "Locates ByteRange & PKCS#7 Contents field embedded in the PDF by UIDAI" },
+            { n: "2", title: "Verify",  body: "Parses the certificate chain and validates the cryptographic signature" },
+            { n: "3", title: "Stamp",   body: "Appends a visual 'Signature Valid' stamp without breaking the original signature" },
+          ].map((item) => (
+            <div key={item.n} style={S.stepCard}>
+              <div style={S.stepNum}>{item.n}</div>
+              <div style={S.stepTitle}>{item.title}</div>
+              <div style={S.stepBody}>{item.body}</div>
+            </div>
           ))}
-        </section>
-      </div>
+        </div>
+
+        {/* ── SEO Content Sections ── */}
+        <div style={S.seoWrap}>
+
+          <div style={S.seoSection}>
+            <h2 style={S.seoH2}>Why does my Aadhaar PDF show "Signature Not Verified"?</h2>
+            <p style={S.seoP}>
+              Every e-Aadhaar downloaded from UIDAI's portal is digitally signed using a certificate
+              issued under India's Controller of Certifying Authorities (CCA) PKI. However, Adobe Reader,
+              Chrome, and mobile PDF viewers do not have CCA India's root certificate in their trust store
+              by default — so the signature appears as "Validity Unknown" even though it is cryptographically valid.
+            </p>
+            <p style={{ ...S.seoP, marginBottom: 0 }}>
+              This is not a problem with your Aadhaar. Government offices and banks that ask for a
+              "signature verified" Aadhaar require you to bridge this gap — traditionally only possible
+              with Adobe Acrobat on desktop.
+            </p>
+          </div>
+
+          <div style={S.seoSection}>
+            <h2 style={S.seoH2}>How to generate a Signature Valid Aadhaar PDF with green tick</h2>
+            <p style={S.seoP}>
+              This tool runs entirely in your browser. When you upload your Aadhaar PDF, it extracts the
+              PKCS#7 digital signature embedded by UIDAI, parses the certificate chain (leaf → UIDAI CA
+              → CCA India root), and verifies each link cryptographically using the forge.js library.
+              It then embeds a "Signature Valid" stamp into your PDF using pdf-lib.
+            </p>
+            <p style={{ ...S.seoP, marginBottom: 0 }}>
+              Your Aadhaar PDF never leaves your device. You can verify this by disconnecting from the
+              internet after the page loads — the tool will still work.
+            </p>
+          </div>
+
+          <div style={S.seoSection}>
+            <h2 style={S.seoH2}>Where is a verified Aadhaar required?</h2>
+            <ul style={S.seoUl}>
+              {[
+                "Passport Seva Kendra applications requiring Aadhaar as address proof",
+                "Bank account KYC with e-Aadhaar submission",
+                "Government scheme enrollment portals",
+                "Employment verification processes",
+                "Any office asking for a \"digitally signed\" or \"signature verified\" Aadhaar printout",
+              ].map((item) => (
+                <li key={item} style={S.seoLi}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div style={S.seoSection}>
+            <h2 style={S.seoH2}>Frequently Asked Questions</h2>
+            {[
+              {
+                q: "How do I get the green tick on my Aadhaar PDF without Adobe Acrobat?",
+                a: "Upload your Aadhaar PDF to this free tool. It verifies the UIDAI cryptographic signature in your browser and generates a downloadable PDF with a 'Signature Valid' stamp. No Adobe required, works on mobile, and your file never leaves your device.",
+              },
+              {
+                q: "Is it safe to use my Aadhaar PDF with this tool?",
+                a: "This tool processes your Aadhaar PDF entirely inside your browser using JavaScript. Your file is never uploaded to any server. You can verify this by turning off your internet after uploading — the tool will still work.",
+              },
+              {
+                q: "Will passport offices and banks accept this verified Aadhaar PDF?",
+                a: "The tool adds a visible verification stamp showing the UIDAI certificate details, issuing authority, and verification timestamp. The original UIDAI digital signature remains intact in the PDF.",
+              },
+              {
+                q: "Does this work on mobile phones?",
+                a: "Yes. This tool works on all modern mobile browsers (Android and iOS). No app download required.",
+              },
+              {
+                q: "Why does the Aadhaar PDF show a yellow question mark instead of a green tick?",
+                a: "The yellow question mark means 'Validity Unknown' — Adobe Reader cannot verify the UIDAI certificate chain because CCA India's root certificate is not in its default trust store. This tool adds the green tick by cryptographically verifying the signature and embedding a permanent stamp.",
+              },
+            ].map(({ q, a }) => (
+              <details key={q} style={S.faqItem}>
+                <summary style={S.faqQ}>{q}</summary>
+                <p style={S.faqA}>{a}</p>
+              </details>
+            ))}
+          </div>
+
+        </div>
+      </main>
+
+      {/* ── Footer ── */}
+      <footer style={S.footer}>
+        100% client-side · No data leaves your browser · Free to use<br />
+        <a href="/hi/" style={{ color: C.blue, textDecoration: "none", fontSize: 11 }}>
+          हिंदी में देखें →
+        </a>
+      </footer>
     </div>
   );
 }

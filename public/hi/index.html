@@ -3,12 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#060d19" />
+    <meta name="theme-color" content="#0d6efd" />
     <link rel="canonical" href="https://aadhar-green-tick.galaksy.in/hi/" />
     <link rel="alternate" hreflang="en-IN" href="https://aadhar-green-tick.galaksy.in/" />
     <link rel="alternate" hreflang="hi" href="https://aadhar-green-tick.galaksy.in/hi/" />
     <link rel="alternate" hreflang="x-default" href="https://aadhar-green-tick.galaksy.in/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <title>आधार PDF सिग्नेचर वेरीफाई करें मुफ्त में | Green Tick बिना Adobe के</title>
     <meta name="description" content="अपना आधार PDF अपलोड करें और सिग्नेचर वेरीफाईड कॉपी डाउनलोड करें — बिल्कुल मुफ्त, बिना Adobe, मोबाइल पर भी काम करता है। UIDAI डिजिटल सिग्नेचर 100% ब्राउज़र में वेरीफाई होता है।" />
@@ -37,7 +40,7 @@
           "name": "आधार PDF में 'Signature Not Verified' क्यों दिखता है?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "UIDAI के पोर्टल से डाउनलोड किया गया हर e-Aadhaar UIDAI के डिजिटल सर्टिफिकेट से साइन होता है। लेकिन Adobe Reader, Chrome और मोबाइल PDF व्यूअर में CCA India का रूट सर्टिफिकेट डिफ़ॉल्ट रूप से नहीं होता, इसलिए 'Validity Unknown' दिखता है — जबकि सिग्नेचर बिल्कुल सही होता है।"
+            "text": "UIDAI के पोर्टल से डाउनलोड किया गया हर e-Aadhaar UIDAI के डिजिटल सर्टिफिकेट से साइन होता है। लेकिन Adobe Reader, Chrome और मोबाइल PDF व्यूअर में CCA India का रूट सर्टिफिकेट डिफ़ॉल्ट रूप से नहीं होता, इसलिए 'Validity Unknown' दिखता है।"
           }
         },
         {
@@ -45,7 +48,7 @@
           "name": "बिना Adobe के आधार PDF में Green Tick कैसे लगाएं?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "aadhar-green-tick.galaksy.in पर अपना आधार PDF अपलोड करें। यह टूल ब्राउज़र में ही UIDAI का क्रिप्टोग्राफिक सिग्नेचर वेरीफाई करता है और 'Signature Valid' स्टैम्प वाली PDF डाउनलोड करने देता है। कोई Adobe नहीं चाहिए, मोबाइल पर काम करता है, और आपकी फ़ाइल कहीं नहीं जाती।"
+            "text": "aadhar-green-tick.galaksy.in पर अपना आधार PDF अपलोड करें। यह टूल ब्राउज़र में ही UIDAI का सिग्नेचर वेरीफाई करता है और Signature Valid स्टैम्प वाली PDF डाउनलोड करने देता है।"
           }
         },
         {
@@ -70,176 +73,380 @@
     </script>
 
     <style>
-      *, *::before, *::after { box-sizing: border-box; }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
       body {
-        margin: 0;
         min-height: 100vh;
-        background: linear-gradient(160deg, #060d19 0%, #0b1628 50%, #071020 100%);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        color: #c8d8e8;
+        background: #f5f7fa;
+        font-family: 'Noto Sans Devanagari', 'Noto Sans', 'Segoe UI', Arial, sans-serif;
+        color: #212529;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
       }
-      .container {
-        max-width: 680px;
-        margin: 0 auto;
-        padding: 40px 20px 80px;
+
+      /* ── Top nav bar ── */
+      nav {
+        background: #0d6efd;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 56px;
+        flex-shrink: 0;
       }
-      .badge {
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .nav-logo {
+        width: 36px; height: 36px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+      }
+      .nav-name {
+        color: #fff;
+        font-weight: 700;
+        font-size: 17px;
+        line-height: 1.2;
+        display: block;
+      }
+      .nav-tag {
+        color: rgba(255,255,255,0.65);
+        font-size: 10px;
+        letter-spacing: 0.4px;
+        display: block;
+        margin-top: 1px;
+      }
+      .nav-badge {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 4px;
+        padding: 4px 10px;
+        color: #fff;
+        font-size: 11px;
+        letter-spacing: 0.8px;
+      }
+
+      /* ── Main ── */
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 36px 16px 64px;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        text-align: center;
+        margin-bottom: 28px;
+        max-width: 640px;
+        width: 100%;
+      }
+      .hero-badge {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        background: rgba(255,180,0,0.08);
-        border: 1px solid rgba(255,180,0,0.25);
-        border-radius: 4px;
-        padding: 4px 12px;
-        font-size: 11px;
-        color: #f0b400;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        margin-bottom: 16px;
+        gap: 6px;
+        background: #d1e7dd;
+        border: 1px solid #a3cfbb;
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 12px;
+        color: #0a3622;
+        font-weight: 600;
+        margin-bottom: 14px;
+        letter-spacing: 0.2px;
       }
       h1 {
-        font-family: Georgia, 'Times New Roman', serif;
-        font-size: clamp(22px, 5vw, 32px);
+        font-size: clamp(20px, 4vw, 28px);
         font-weight: 700;
-        color: #e8f0fa;
-        margin: 0 0 12px;
-        line-height: 1.3;
+        color: #212529;
+        margin-bottom: 8px;
+        line-height: 1.35;
       }
-      .subtitle {
-        font-size: 13px;
-        color: #5a7a9a;
-        margin: 0 0 40px;
-        line-height: 1.6;
+      .hero-sub {
+        font-size: 14px;
+        color: #6c757d;
+        line-height: 1.65;
       }
-      .cta-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 32px;
-        margin-bottom: 32px;
+
+      /* ── Card ── */
+      .card {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 28px 32px;
+        width: 100%;
+        max-width: 640px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+      }
+
+      /* ── CTA card ── */
+      .cta-inner {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 44px 24px;
         text-align: center;
+        margin-bottom: 16px;
       }
-      .cta-icon { font-size: 48px; margin-bottom: 16px; display: block; }
-      .cta-text { font-size: 15px; color: #8aabb0; margin-bottom: 8px; }
-      .cta-sub { font-size: 13px; color: #3a5a6a; margin-bottom: 24px; }
+      .cta-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+      .cta-title { font-size: 15px; font-weight: 600; color: #212529; margin-bottom: 4px; }
+      .cta-sub { font-size: 13px; color: #6c757d; margin-bottom: 18px; line-height: 1.5; }
       .cta-btn {
         display: inline-block;
-        padding: 14px 40px;
-        background: linear-gradient(135deg, #1a6e35 0%, #0f4a24 100%);
-        border: 1px solid rgba(50,200,100,0.3);
-        border-radius: 8px;
-        color: #4de890;
+        padding: 12px 36px;
+        background: #0d6efd;
+        border-radius: 6px;
+        color: #fff;
         font-size: 15px;
         font-weight: 600;
         text-decoration: none;
-        letter-spacing: 0.5px;
-        transition: filter 0.2s;
+        font-family: inherit;
+        transition: background 0.15s;
       }
-      .cta-btn:hover { filter: brightness(1.15); }
-      h2 {
-        font-family: Georgia, serif;
-        font-size: 17px;
-        color: #5a7a8a;
-        margin: 0 0 12px;
+      .cta-btn:hover { background: #0b5ed7; opacity: 1; }
+      .privacy-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #6c757d;
+        line-height: 1.5;
+      }
+
+      /* ── Steps ── */
+      .steps {
+        max-width: 640px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .step {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 16px 14px;
+        text-align: center;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px; height: 28px;
+        background: #e7f1ff;
+        border: 1px solid #9ec5fe;
+        border-radius: 50%;
+        color: #0d6efd;
+        font-size: 13px;
         font-weight: 700;
+        margin-bottom: 10px;
       }
-      section { margin-bottom: 40px; }
-      p { margin: 0 0 12px; font-size: 14px; color: #3a5a6a; line-height: 1.85; }
-      ul { padding-left: 20px; margin: 0; }
-      li { margin-bottom: 8px; font-size: 14px; color: #3a5a6a; line-height: 1.7; }
-      details {
+      .step-title { font-size: 12px; font-weight: 700; color: #212529; margin-bottom: 6px; }
+      .step-body { font-size: 11px; color: #6c757d; line-height: 1.6; }
+
+      /* ── SEO sections ── */
+      .seo-wrap { max-width: 640px; width: 100%; margin-top: 8px; }
+      .seo-section {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 24px 28px;
         margin-bottom: 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        padding-bottom: 16px;
       }
+      h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 12px;
+        line-height: 1.35;
+      }
+      p { font-size: 13px; color: #6c757d; line-height: 1.8; margin-bottom: 10px; }
+      p:last-child { margin-bottom: 0; }
+      ul { padding-left: 20px; }
+      li { font-size: 13px; color: #6c757d; margin-bottom: 6px; line-height: 1.65; }
+
+      /* ── FAQ ── */
+      details {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 14px;
+        margin-bottom: 14px;
+      }
+      details:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
       summary {
         cursor: pointer;
-        color: #5a7a8a;
+        color: #212529;
         font-weight: 600;
         font-size: 13px;
         list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
       }
-      details p { margin: 10px 0 0; font-size: 13px; color: #2e4e5e; }
-      .footer { margin-top: 48px; text-align: center; font-size: 11px; color: #1e3a4a; line-height: 1.8; }
+      summary::-webkit-details-marker { display: none; }
+      summary::after { content: '▾'; color: #6c757d; flex-shrink: 0; }
+      details[open] summary::after { content: '▴'; }
+      details p { margin-top: 8px; }
+
+      /* ── Footer ── */
+      footer {
+        background: #fff;
+        border-top: 1px solid #dee2e6;
+        padding: 16px 24px;
+        text-align: center;
+        font-size: 12px;
+        color: #6c757d;
+        line-height: 1.8;
+      }
+      footer a { color: #0d6efd; text-decoration: none; }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="badge">🔐 UIDAI Signature Verification</div>
-      <h1>आधार PDF में Green Tick पाएं — मुफ्त, बिना Adobe</h1>
-      <p class="subtitle">
-        अपना e-Aadhaar PDF अपलोड करें और 'Signature Valid' स्टैम्प के साथ डाउनलोड करें।
-        100% ब्राउज़र में — कोई फ़ाइल अपलोड नहीं होती, कोई Adobe नहीं चाहिए।
-      </p>
 
-      <div class="cta-card">
-        <span class="cta-icon">📄</span>
-        <p class="cta-text">अपना Aadhaar PDF यहाँ ड्रैग करें या नीचे क्लिक करें</p>
-        <p class="cta-sub">आपकी फ़ाइल आपके डिवाइस से बाहर नहीं जाती — 100% प्राइवेट</p>
-        <a href="/" class="cta-btn">मुख्य टूल खोलें →</a>
+    <!-- ── Top Navigation Bar ── -->
+    <nav>
+      <a href="/" class="nav-brand">
+        <div class="nav-logo">🔐</div>
+        <div>
+          <span class="nav-name">Aadhaar PDF Verifier</span>
+          <span class="nav-tag">UIDAI Digital Signature Tool</span>
+        </div>
+      </a>
+      <div class="nav-badge">🔒 100% Private</div>
+    </nav>
+
+    <main>
+
+      <!-- ── Hero ── -->
+      <div class="hero">
+        <div class="hero-badge">✓ मुफ्त · बिना Adobe · मोबाइल पर काम करता है</div>
+        <h1>आधार PDF में Green Tick पाएं — मुफ्त, बिना Adobe</h1>
+        <p class="hero-sub">
+          अपना e-Aadhaar PDF अपलोड करें और Signature Valid स्टैम्प के साथ डाउनलोड करें।
+          100% ब्राउज़र में — कोई फ़ाइल अपलोड नहीं होती, कोई Adobe नहीं चाहिए।
+        </p>
       </div>
 
-      <section>
-        <h2>आधार PDF में 'Signature Not Verified' क्यों दिखता है?</h2>
-        <p>
-          UIDAI के पोर्टल से डाउनलोड किया गया हर e-Aadhaar, UIDAI के डिजिटल सर्टिफिकेट से साइन होता है।
-          लेकिन Adobe Reader, Chrome और मोबाइल PDF व्यूअर में CCA India का रूट सर्टिफिकेट डिफ़ॉल्ट रूप से
-          नहीं होता — इसलिए "Validity Unknown" या "Signature Not Verified" दिखता है।
-        </p>
-        <p>
-          यह आपके आधार की गलती नहीं है। यह India के PKI और global PDF software के बीच का अंतर है।
-          सरकारी दफ्तर, बैंक और पासपोर्ट ऑफिस "signature verified" आधार माँगते हैं — जो पहले सिर्फ
-          Adobe Acrobat desktop पर मुमकिन था।
-        </p>
-      </section>
+      <!-- ── CTA Card ── -->
+      <div class="card">
+        <div class="cta-inner">
+          <span class="cta-icon">📄</span>
+          <p class="cta-title">अपना Aadhaar PDF यहाँ ड्रैग करें</p>
+          <p class="cta-sub">आपकी फ़ाइल आपके डिवाइस से बाहर नहीं जाती — 100% प्राइवेट</p>
+          <a href="/" class="cta-btn">मुख्य टूल खोलें →</a>
+        </div>
+        <div class="privacy-note">
+          🔒 आपकी फ़ाइल कभी किसी सर्वर पर नहीं जाती — 100% client-side processing
+        </div>
+      </div>
 
-      <section>
-        <h2>यह टूल कैसे काम करता है?</h2>
-        <p>
-          यह टूल पूरी तरह आपके ब्राउज़र में चलता है। जब आप आधार PDF अपलोड करते हैं, तो यह UIDAI का
-          PKCS#7 डिजिटल सिग्नेचर निकालता है, सर्टिफिकेट चेन वेरीफाई करता है (forge.js से), और
-          pdf-lib से PDF में "Signature Valid" स्टैम्प लगाता है।
-        </p>
-        <p>
-          आपकी PDF फ़ाइल कभी किसी सर्वर पर नहीं जाती। Page load होने के बाद internet बंद करके
-          भी यह टूल काम करता है।
-        </p>
-      </section>
+      <!-- ── How it works ── -->
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-title">Extract</div>
+          <div class="step-body">PDF में UIDAI का PKCS#7 डिजिटल सिग्नेचर ढूंढता है</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-title">Verify</div>
+          <div class="step-body">सर्टिफिकेट चेन को cryptographically वेरीफाई करता है</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-title">Stamp</div>
+          <div class="step-body">PDF में Signature Valid स्टैम्प लगाता है — original सिग्नेचर intact रहता है</div>
+        </div>
+      </div>
 
-      <section>
-        <h2>Verified Aadhaar कहाँ जरूरी होता है?</h2>
-        <ul>
-          <li>Passport Seva Kendra में address proof के रूप में Aadhaar</li>
-          <li>Bank KYC में e-Aadhaar submission</li>
-          <li>सरकारी योजनाओं के enrollment portals</li>
-          <li>नौकरी के verification process में</li>
-          <li>कोई भी दफ्तर जो "digitally signed" या "signature verified" Aadhaar माँगे</li>
-        </ul>
-      </section>
+      <!-- ── SEO Content ── -->
+      <div class="seo-wrap">
 
-      <section>
-        <h2>अक्सर पूछे जाने वाले सवाल</h2>
-        <details>
-          <summary>बिना Adobe के आधार में Green Tick कैसे लगाएं?</summary>
-          <p>aadhar-green-tick.galaksy.in पर जाएं, अपना Aadhaar PDF अपलोड करें, और 'Signature Valid' स्टैम्प के साथ PDF डाउनलोड करें। कोई Adobe नहीं चाहिए, मोबाइल पर काम करता है।</p>
-        </details>
-        <details>
-          <summary>क्या यह मोबाइल पर काम करता है?</summary>
-          <p>हाँ। यह टूल Android और iOS दोनों पर किसी भी आधुनिक ब्राउज़र में काम करता है। कोई ऐप डाउनलोड की जरूरत नहीं।</p>
-        </details>
-        <details>
-          <summary>क्या यह safe है?</summary>
-          <p>बिल्कुल। आपकी PDF फ़ाइल कभी किसी सर्वर पर नहीं जाती। सब कुछ आपके ब्राउज़र में होता है। Internet बंद करके भी टूल काम करता है।</p>
-        </details>
-        <details>
-          <summary>Passport office इस PDF को accept करेगा?</summary>
-          <p>यह टूल PDF में एक visible verification stamp लगाता है जिसमें UIDAI certificate details, issuing authority और verification timestamp होती है। Original UIDAI digital signature PDF में बरकरार रहता है।</p>
-        </details>
-      </section>
+        <div class="seo-section">
+          <h2>आधार PDF में 'Signature Not Verified' क्यों दिखता है?</h2>
+          <p>
+            UIDAI के पोर्टल से डाउनलोड किया गया हर e-Aadhaar, UIDAI के डिजिटल सर्टिफिकेट से साइन होता है।
+            लेकिन Adobe Reader, Chrome और मोबाइल PDF व्यूअर में CCA India का रूट सर्टिफिकेट डिफ़ॉल्ट रूप से
+            नहीं होता — इसलिए "Validity Unknown" या "Signature Not Verified" दिखता है।
+          </p>
+          <p>
+            यह आपके आधार की गलती नहीं है। यह India के PKI और global PDF software के बीच का अंतर है।
+            सरकारी दफ्तर, बैंक और पासपोर्ट ऑफिस "signature verified" आधार माँगते हैं — जो पहले सिर्फ
+            Adobe Acrobat desktop पर मुमकिन था।
+          </p>
+        </div>
 
-      <p class="footer">
-        100% client-side • कोई डेटा upload नहीं होता • <a href="/" style="color: #2e5a6a;">English version →</a>
-      </p>
-    </div>
+        <div class="seo-section">
+          <h2>यह टूल कैसे काम करता है?</h2>
+          <p>
+            यह टूल पूरी तरह आपके ब्राउज़र में चलता है। जब आप आधार PDF अपलोड करते हैं, तो यह UIDAI का
+            PKCS#7 डिजिटल सिग्नेचर निकालता है, सर्टिफिकेट चेन वेरीफाई करता है, और pdf-lib से PDF में
+            "Signature Valid" स्टैम्प लगाता है।
+          </p>
+          <p>
+            आपकी PDF फ़ाइल कभी किसी सर्वर पर नहीं जाती। Page load होने के बाद internet बंद करके
+            भी यह टूल काम करता है।
+          </p>
+        </div>
+
+        <div class="seo-section">
+          <h2>Verified Aadhaar कहाँ जरूरी होता है?</h2>
+          <ul>
+            <li>Passport Seva Kendra में address proof के रूप में Aadhaar</li>
+            <li>Bank KYC में e-Aadhaar submission</li>
+            <li>सरकारी योजनाओं के enrollment portals</li>
+            <li>नौकरी के verification process में</li>
+            <li>कोई भी दफ्तर जो "digitally signed" या "signature verified" Aadhaar माँगे</li>
+          </ul>
+        </div>
+
+        <div class="seo-section">
+          <h2>अक्सर पूछे जाने वाले सवाल</h2>
+
+          <details>
+            <summary>बिना Adobe के आधार में Green Tick कैसे लगाएं?</summary>
+            <p>aadhar-green-tick.galaksy.in पर जाएं, अपना Aadhaar PDF अपलोड करें, और Signature Valid स्टैम्प के साथ PDF डाउनलोड करें। कोई Adobe नहीं चाहिए, मोबाइल पर काम करता है।</p>
+          </details>
+
+          <details>
+            <summary>क्या यह मोबाइल पर काम करता है?</summary>
+            <p>हाँ। यह टूल Android और iOS दोनों पर किसी भी आधुनिक ब्राउज़र में काम करता है। कोई ऐप डाउनलोड की जरूरत नहीं।</p>
+          </details>
+
+          <details>
+            <summary>क्या यह safe है? मेरा आधार data safe रहेगा?</summary>
+            <p>बिल्कुल। आपकी PDF फ़ाइल कभी किसी सर्वर पर नहीं जाती। सब कुछ आपके ब्राउज़र में होता है। Internet बंद करके भी टूल काम करता है — यही इसकी privacy guarantee है।</p>
+          </details>
+
+          <details>
+            <summary>Passport office या bank इस verified PDF को accept करेगा?</summary>
+            <p>यह टूल PDF में एक visible verification stamp लगाता है जिसमें UIDAI certificate details, issuing authority और verification timestamp होती है। Original UIDAI digital signature PDF में बरकरार रहता है।</p>
+          </details>
+
+          <details>
+            <summary>आधार PDF में yellow question mark क्यों दिखता है?</summary>
+            <p>Yellow question mark का मतलब है "Validity Unknown" — Adobe Reader, CCA India का root certificate नहीं पहचानता। यह टूल cryptographically सिग्नेचर वेरीफाई करके PDF में permanent green tick stamp लगाता है।</p>
+          </details>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer>
+      100% client-side · कोई डेटा upload नहीं होता · बिल्कुल मुफ्त<br />
+      <a href="/">English version →</a>
+    </footer>
+
   </body>
 </html>
