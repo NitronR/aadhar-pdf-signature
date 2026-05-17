@@ -107,6 +107,19 @@ export const bytesToStr = (bytes: Uint8Array): string => {
   return str;
 };
 
+// Convert a forge binary string (charCode == byte value) to Uint8Array — browser-safe.
+const strToBytes = (binaryStr: string): Uint8Array<ArrayBuffer> => {
+  const out = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) out[i] = binaryStr.charCodeAt(i) & 0xff;
+  return out;
+};
+
+// Convert Uint8Array or ArrayBuffer to lowercase hex — browser-safe, no Buffer needed.
+const bufToHex = (buf: Uint8Array | ArrayBuffer): string =>
+  Array.from(buf instanceof ArrayBuffer ? new Uint8Array(buf) : buf)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+
 // ─── Certificate Helpers ──────────────────────────────────────────────────────
 
 type CertAttr = { shortName?: string; name?: string; value: string };
@@ -224,60 +237,107 @@ function verifyChainToRoot(
   return { ok: false, error: "Chain does not reach a trusted CCA India root certificate" };
 }
 
-function verifyPKCS7Signature(
+// forge.asn1.Asn1 can't be used as a type inside a function where forge is a param.
+type Asn1Node = { type: number; value: Asn1Node[] | string };
+
+// Correct CMS/PKCS#7 verification per RFC 5652:
+//   1. hash(ByteRange) must match the messageDigest attribute inside SignedAttributes
+//   2. RSA signature must verify over DER-encoded SignedAttributes (not raw bytes)
+// forge.pkcs7.verify() is unimplemented; we navigate the ASN.1 tree directly and
+// use Web Crypto for the RSA step.
+async function verifyPKCS7Signature(
   forge: typeof NodeForge,
   signedData: Uint8Array,
   sigBytes: Uint8Array,
   signerCert: RawCert,
-): { ok: boolean; error: string | null } {
+): Promise<{ ok: boolean; error: string | null }> {
   try {
-    const buf = forge.util.createBuffer(bytesToStr(sigBytes));
-    const asn1 = forge.asn1.fromDer(buf, true);
-    const p7 = forge.pkcs7.messageFromAsn1(asn1);
+    const asn1Root = forge.asn1.fromDer(forge.util.createBuffer(bytesToStr(sigBytes)), false);
 
-    // Check if SignerInfo is available (forge may not parse it for all PDF signatures)
-    const p7Obj = p7 as unknown as {
-      content?: unknown;
-      signers?: Array<{
-        digestAlgorithm?: string;
-        signature?: string;
-        issuer?: { attributes: Array<{ shortName?: string; name?: string; value: string }> };
-        serialNumber?: string;
-      }>;
-    };
+    // Navigate: ContentInfo → [0] EXPLICIT → SignedData
+    // forge stores type as the raw tag number WITHOUT class bits:
+    //   SEQUENCE=0x10, SET=0x11, [0] constructed=0x00, OID=0x06, OCTET STRING=0x04
+    const rootFields = asn1Root.value as Asn1Node[];
+    const ctxWrapper = rootFields[1];
+    const signedDataFields = ((ctxWrapper.value as Asn1Node[])[0]).value as Asn1Node[];
 
-    // forge can't always parse SignerInfo from PDF PKCS#7 — fall back to chain trust
-    if (!p7Obj.signers || p7Obj.signers.length === 0) {
-      return { ok: true, error: null };
+    // signerInfos is the last SET (forge type 0x11) in SignedData
+    let signerInfosSet: Asn1Node | null = null;
+    for (let i = signedDataFields.length - 1; i >= 0; i--) {
+      if (signedDataFields[i].type === 0x11) { signerInfosSet = signedDataFields[i]; break; }
+    }
+    if (!signerInfosSet) return { ok: false, error: "signerInfos not found in PKCS#7" };
+
+    const siFields = ((signerInfosSet.value as Asn1Node[])[0])?.value as Asn1Node[] | undefined;
+    if (!siFields) return { ok: false, error: "Empty SignerInfo" };
+
+    // Walk SignerInfo fields by forge type:
+    // version (0x02), sid (0x10 #1), digestAlg (0x10 #2), signedAttrs ([0] 0x00),
+    // sigAlg (0x10 #3), signature (0x04)
+    let digestAlgSeq: Asn1Node | null = null;
+    let signedAttrsNode: Asn1Node | null = null;
+    let signatureOctStr: Asn1Node | null = null;
+    let seqCount = 0;
+    for (const f of siFields) {
+      if (f.type === 0x10) { if (++seqCount === 2) digestAlgSeq = f; }
+      else if (f.type === 0x00) { signedAttrsNode = f; }
+      else if (f.type === 0x04) { signatureOctStr = f; }
     }
 
-    // If SignerInfo is available, use it for proper verification
-    const signer = p7Obj.signers[0];
-    if (!signer?.signature) return { ok: false, error: "No signature in SignerInfo" };
+    if (!signedAttrsNode) return { ok: false, error: "signedAttrs absent in SignerInfo — cannot verify" };
+    if (!signatureOctStr) return { ok: false, error: "signature absent in SignerInfo" };
 
-    const digOid = signer.digestAlgorithm || "";
-    const oidMap: Record<string, string> = {
-      "1.2.840.113549.2.5": "md5",
-      "1.2.840.113549.2.2": "sha1",
-      "2.16.840.1.101.3.4.2.1": "sha256",
-      "2.16.840.1.101.3.4.2.2": "sha384",
-      "2.16.840.1.101.3.4.2.3": "sha512",
+    // Map digestAlgorithm OID to Web Crypto hash name
+    const hashOid = digestAlgSeq
+      ? forge.asn1.derToOid((digestAlgSeq.value as Asn1Node[])[0].value as string)
+      : '2.16.840.1.101.3.4.2.1';
+    const digestAlg: Record<string, string> = {
+      '1.3.14.3.2.26':            'SHA-1',
+      '2.16.840.1.101.3.4.2.1':   'SHA-256',
+      '2.16.840.1.101.3.4.2.2':   'SHA-384',
+      '2.16.840.1.101.3.4.2.3':   'SHA-512',
     };
-    const digestName = oidMap[digOid] || "sha256";
-    type DigestModule = { create: () => { update: (b: string) => void; digest: () => { toHex: () => string } } };
-    const digestMod = (forge.md as unknown as Record<string, DigestModule | undefined>)[digestName];
-    if (!digestMod) return { ok: false, error: `Unsupported digest: ${digOid}` };
-    const mdInner = digestMod.create();
-    mdInner.update(bytesToStr(signedData));
-    const hashHex = mdInner.digest().toHex();
+    const hashName = digestAlg[hashOid] ?? 'SHA-256';
 
-    const sigBytesDecoded = forge.util.decode64(signer.signature);
-    type RSAPublicKey = { verify: (hash: string, sig: string) => boolean };
-    const certPubKey = (signerCert as unknown as { publicKey: RSAPublicKey | null }).publicKey;
-    if (!certPubKey) return { ok: false, error: "No public key on signer certificate" };
+    // Find messageDigest attribute (OID 1.2.840.113549.1.9.4) inside signedAttrs
+    let embeddedHashHex: string | null = null;
+    for (const attr of signedAttrsNode.value as Asn1Node[]) {
+      if (attr.type !== 0x10) continue; // SEQUENCE
+      const [oidNode, setNode] = attr.value as Asn1Node[];
+      if (oidNode?.type !== 0x06) continue; // OID
+      if (forge.asn1.derToOid(oidNode.value as string) !== '1.2.840.113549.1.9.4') continue;
+      const octStr = (setNode?.value as Asn1Node[])?.[0];
+      if (octStr?.type === 0x04) {
+        embeddedHashHex = bufToHex(strToBytes(octStr.value as string));
+      }
+    }
+    if (!embeddedHashHex) return { ok: false, error: "messageDigest attribute not found in signedAttrs" };
 
-    const verified = certPubKey.verify(hashHex, sigBytesDecoded);
-    return { ok: verified, error: verified ? null : "RSA signature verification failed" };
+    // Step 1: verify document integrity — hash(ByteRange) must match messageDigest
+    const docHashBuf = await crypto.subtle.digest(hashName, new Uint8Array(signedData));
+    const docHashHex = bufToHex(docHashBuf);
+    if (docHashHex !== embeddedHashHex) {
+      return { ok: false, error: "Document hash mismatch — PDF content has been tampered" };
+    }
+
+    // Step 2: RSA verify — signature is over DER(signedAttrs) with tag rewritten 0xA0→0x31
+    const signedAttrsDer = strToBytes(
+      forge.asn1.toDer(signedAttrsNode as unknown as Parameters<typeof forge.asn1.toDer>[0]).getBytes()
+    );
+    signedAttrsDer[0] = 0x31; // [0] IMPLICIT → SET OF (what was actually signed)
+
+    const forgeCert = signerCert as unknown as ReturnType<typeof forge.pki.certificateFromPem>;
+    const spkiDer = strToBytes(
+      forge.asn1.toDer(forge.pki.publicKeyToAsn1(forgeCert.publicKey)).getBytes()
+    );
+
+    const pubKey = await crypto.subtle.importKey(
+      'spki', spkiDer, { name: 'RSASSA-PKCS1-v1_5', hash: hashName }, false, ['verify']
+    );
+    const sigBuf = strToBytes(signatureOctStr.value as string);
+    const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', pubKey, sigBuf, signedAttrsDer);
+
+    return { ok: valid, error: valid ? null : "RSA signature invalid — document may have been tampered" };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
@@ -372,15 +432,12 @@ export async function verifySignature(
   const chainResult = verifyChainToRoot(forge, certs, trustedRoots);
   const chainVerified = chainResult.ok;
 
-  // Step 2: Attempt PKCS#7 cryptographic signature verification
+  // Step 2: Cryptographic signature verification (RFC 5652 / CMS)
   const signerCert = certs[certs.length - 1];
-  const sigResult = verifyPKCS7Signature(forge, signedData, sigBytes, signerCert);
+  const sigResult = await verifyPKCS7Signature(forge, signedData, sigBytes, signerCert);
   const signatureVerified = sigResult.ok;
 
-  // Final verified = chain is valid AND (signature verifies OR UIDAI cert present)
-  // This handles cases where forge's verify() fails due to missing root in trust store
-  // but the chain is genuinely rooted in CCA India's PKI
-  const verified = chainVerified && (signatureVerified || hasUIDAI);
+  const verified = chainVerified && signatureVerified;
 
   return {
     verified,
