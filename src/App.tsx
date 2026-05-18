@@ -224,6 +224,7 @@ const S = {
     fontSize: 12,
     color: C.muted,
     lineHeight: 1.5,
+    textAlign: "center" as const,
   },
 
   // ── Error ────────────────────────────────────────────────────────────────────
@@ -581,6 +582,7 @@ export default function AadhaarVerifier() {
   const [pdfPassword, setPdfPassword]   = useState("");
   const [stampLoading, setStampLoading] = useState(false);
   const [stampError, setStampError]     = useState<string | null>(null);
+  const [tickPngBytes, setTickPngBytes] = useState<Uint8Array | undefined>(undefined);
   const fileRef                     = useRef<HTMLInputElement>(null);
   const libsLoadingRef              = useRef(false);
 
@@ -592,14 +594,7 @@ export default function AadhaarVerifier() {
       // 1. Decrypt the PDF using the user's password
       const decrypted = await decryptPDF(rawPdfBytes, pdfPassword, window.PDFLib, window.forge);
 
-      // 2. Fetch the tick image (same as the non-encrypted path)
-      let tickPngBytes: Uint8Array | undefined;
-      try {
-        const r = await fetch("/tick.png");
-        tickPngBytes = new Uint8Array(await r.arrayBuffer());
-      } catch { /* drawn fallback */ }
-
-      // 3. Apply the FRM XObject stamp — identical to the non-encrypted path
+      // 2. Apply the FRM XObject stamp — identical to the non-encrypted path
       const stamped = await addVerificationStamp(decrypted, { signerCertInfo: result!.signerCertInfo }, window.PDFLib, tickPngBytes);
       setVerifiedUrl(URL.createObjectURL(new Blob([stamped.buffer as ArrayBuffer], { type: "application/pdf" })));
     } catch (e) {
@@ -620,7 +615,11 @@ export default function AadhaarVerifier() {
     setLibsLoading(true);
     const FORGE  = "https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js";
     const PDFLIB = "https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js";
-    Promise.all([loadScript(FORGE), loadScript(PDFLIB)])
+    Promise.all([
+      loadScript(FORGE),
+      loadScript(PDFLIB),
+      fetch("/tick.png").then(r => r.arrayBuffer()).then(b => setTickPngBytes(new Uint8Array(b))).catch(() => {}),
+    ])
       .then(() => { setLibsReady(true); setLibsLoading(false); })
       .catch(() => { setLibError("Failed to load cryptographic libraries. Check your internet connection."); setLibsLoading(false); });
   }, [libsReady]);
@@ -688,11 +687,6 @@ export default function AadhaarVerifier() {
       if (verifyResult.verified && window.PDFLib && !encrypted) {
         setProgress("Embedding verification stamp…");
         try {
-          let tickPngBytes: Uint8Array | undefined;
-          try {
-            const r = await fetch("/tick.png");
-            tickPngBytes = new Uint8Array(await r.arrayBuffer());
-          } catch { /* use drawn fallback */ }
           const stamped = await addVerificationStamp(pdfBytes, verifyResult, window.PDFLib, tickPngBytes);
           const blob = new Blob([stamped.buffer as ArrayBuffer], { type: "application/pdf" });
           setVerifiedUrl(URL.createObjectURL(blob));
@@ -804,7 +798,7 @@ export default function AadhaarVerifier() {
               </div>
 
               <div style={S.dzPrivacy}>
-                🔒 Your file never leaves your device — 100% client-side processing
+                🔒 Your file never leaves your device — 100% client-side processing. You can verify this by disconnecting from the internet and using the tool — it will still work.
               </div>
 
               <div style={{ ...S.infoBox, marginTop: 10, textAlign: "center" as const }}>
@@ -818,6 +812,10 @@ export default function AadhaarVerifier() {
                   myaadhaar.uidai.gov.in
                 </a>
                 {" "}— it must be password-protected to carry a valid UIDAI signature.
+              </div>
+
+              <div style={{ ...S.infoBox, marginTop: 10, textAlign: "center" as const }}>
+                🖨️ The stamped PDF is for <strong>printing only</strong>. Use your original eAadhaar when the recipient would be validating the signature electronically.
               </div>
 
               <input
@@ -875,13 +873,18 @@ export default function AadhaarVerifier() {
 
               {/* Action buttons — top */}
               {verifiedUrl && result.verified ? (
-                <a
-                  href={verifiedUrl}
-                  download={result.fileName.replace(".pdf", "_verified.pdf")}
-                  style={S.downloadBtn}
-                >
-                  ↓ Download Stamped PDF
-                </a>
+                <>
+                  <a
+                    href={verifiedUrl}
+                    download={result.fileName.replace(".pdf", "_verified.pdf")}
+                    style={S.downloadBtn}
+                  >
+                    ↓ Download Stamped PDF
+                  </a>
+                  <div style={{ fontSize: 12, color: C.muted, marginTop: 10, lineHeight: 1.6, padding: "8px 12px", background: C.bg, borderRadius: 6, border: `1px solid ${C.borderLight}` }}>
+                    <strong style={{ color: C.text }}>For printing only.</strong> The stamped PDF is intended for physical submission. Where the recipient would be validating the digital signature electronically, share your original eAadhaar PDF instead.
+                  </div>
+                </>
               ) : result.verified && pdfEncrypted && !verifiedUrl ? (
                 <div style={S.passwordBox}>
                   <p style={S.passwordLabel}>
