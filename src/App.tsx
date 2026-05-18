@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   extractPDFSignature,
   verifySignature,
@@ -573,7 +573,7 @@ export default function AadhaarVerifier() {
   const [step, setStep]             = useState<Step>("upload");
   const [dragging, setDragging]     = useState(false);
   const [result, setResult]         = useState<SignatureResult | null>(null);
-  const [error, setError]           = useState<string | null>(null);
+  const [error, setError]           = useState<React.ReactNode | null>(null);
   const [verifiedUrl, setVerifiedUrl] = useState<string | null>(null);
   const [progress, setProgress]     = useState("");
   const [rawPdfBytes, setRawPdfBytes]   = useState<Uint8Array | null>(null);
@@ -647,6 +647,26 @@ export default function AadhaarVerifier() {
       const pdfBytes = new Uint8Array(buffer);
 
       const encrypted = isPdfEncrypted(pdfBytes);
+      if (!encrypted) {
+        setError(
+          <span>
+            This PDF is not password-protected. Aadhaar PDFs downloaded from UIDAI are always
+            password-protected. Please download your eAadhaar from{" "}
+            <a
+              href="https://myaadhaar.uidai.gov.in/genricDownloadAadhaar"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: C.blue }}
+            >
+              myaadhaar.uidai.gov.in
+            </a>{" "}
+            and use that file instead.
+          </span>
+        );
+        setStep("upload");
+        setProgress("");
+        return;
+      }
       setPdfEncrypted(encrypted);
       setRawPdfBytes(pdfBytes);
 
