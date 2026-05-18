@@ -87,7 +87,7 @@ const S = {
   topBarLogoBox: {
     width: 36,
     height: 36,
-    background: "rgba(255,255,255,0.15)",
+    background: "#ffffff",
     borderRadius: 6,
     display: "flex",
     alignItems: "center",
@@ -755,7 +755,7 @@ export default function AadhaarVerifier() {
       {/* ── Top Navigation Bar ── */}
       <nav style={S.topBar}>
         <div style={S.topBarBrand}>
-          <div style={S.topBarLogoBox}>🔐</div>
+          <div style={S.topBarLogoBox}><img src="/tick.png" style={{ width: 24, height: 24, objectFit: "contain" }} alt="logo" /></div>
           <div>
             <span style={S.topBarName}>Aadhaar PDF Verifier</span>
             <span style={S.topBarTagline}>Aadhaar Digital Signature Tool</span>
