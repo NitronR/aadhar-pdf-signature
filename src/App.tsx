@@ -778,6 +778,16 @@ export default function AadhaarVerifier() {
           {/* STEP: UPLOAD */}
           {step === "upload" && (
             <div style={{ animation: "fadeUp 0.25s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, padding: "10px 14px", background: C.greenLight, borderRadius: 8, border: `1px solid ${C.greenBorder}` }}>
+                <img
+                  src="/signature_valid_sample.png"
+                  alt="Signature Valid stamp preview"
+                  style={{ width: 120, borderRadius: 4, flexShrink: 0, border: `1px solid ${C.greenBorder}` }}
+                />
+                <p style={{ margin: 0, fontSize: 13, color: C.greenDark, lineHeight: 1.6 }}>
+                  Upload your eAadhaar PDF and we'll verify the UIDAI digital signature and stamp it with a <strong>Signature Valid</strong> badge — like this.
+                </p>
+              </div>
               <div
                 style={S.dropzone(dragging)}
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); loadLibs(); }}
@@ -795,6 +805,19 @@ export default function AadhaarVerifier() {
 
               <div style={S.dzPrivacy}>
                 🔒 Your file never leaves your device — 100% client-side processing
+              </div>
+
+              <div style={{ ...S.infoBox, marginTop: 10, textAlign: "center" as const }}>
+                Use your eAadhaar PDF downloaded from{" "}
+                <a
+                  href="https://myaadhaar.uidai.gov.in/genricDownloadAadhaar"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#084298", fontWeight: 600 }}
+                >
+                  myaadhaar.uidai.gov.in
+                </a>
+                {" "}— it must be password-protected to carry a valid UIDAI signature.
               </div>
 
               <input
