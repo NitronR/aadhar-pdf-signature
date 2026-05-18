@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { cloudflare } from "@cloudflare/vite-plugin"
 import fs from 'fs'
@@ -6,6 +6,11 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  test: {
+    environment: 'node',
+    globals: true,
+    include: ['src/test/**/*.test.ts'],
+  },
   plugins: [
     react(),
     cloudflare(),

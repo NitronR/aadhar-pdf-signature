@@ -165,9 +165,10 @@ export function isUIDAICert(certInfo: CertInfo): boolean {
   );
 }
 
-function loadTrustedRoots(forge: typeof NodeForge): Map<string, ReturnType<typeof forge.pki.certificateFromPem>> {
+function loadTrustedRoots(forge: typeof NodeForge, extraPems?: string[]): Map<string, ReturnType<typeof forge.pki.certificateFromPem>> {
   const roots = new Map<string, ReturnType<typeof forge.pki.certificateFromPem>>();
-  for (const pem of [CCA_INDIA_2022_ROOT_PEM, CCA_INDIA_2007_ROOT_PEM]) {
+  const pems = extraPems ?? [CCA_INDIA_2022_ROOT_PEM, CCA_INDIA_2007_ROOT_PEM];
+  for (const pem of pems) {
     try {
       const cert = forge.pki.certificateFromPem(pem);
       const derBytes = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
@@ -417,7 +418,8 @@ export function extractPDFSignature(pdfBytes: Uint8Array): ExtractionResult {
 export async function verifySignature(
   signedData: Uint8Array,
   sigBytes: Uint8Array,
-  forge: typeof NodeForge
+  forge: typeof NodeForge,
+  trustedRootPems?: string[],
 ): Promise<VerifyResult> {
   const buf = forge.util.createBuffer(bytesToStr(sigBytes));
   const asn1 = forge.asn1.fromDer(buf, false);
@@ -433,7 +435,7 @@ export async function verifySignature(
   const hasUIDAI = allCertInfos.some(isUIDAICert);
 
   // Load CCA India trusted root certificates
-  const trustedRoots = loadTrustedRoots(forge);
+  const trustedRoots = loadTrustedRoots(forge, trustedRootPems);
 
   // Step 1: Verify the certificate chain reaches a trusted CCA India root
   const chainResult = verifyChainToRoot(forge, certs, trustedRoots);
