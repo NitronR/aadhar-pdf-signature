@@ -3,6 +3,8 @@ import {
   extractPDFSignature,
   verifySignature,
   addVerificationStamp,
+  isPdfEncrypted,
+  decryptPDF,
   type VerifyResult,
 } from "./pdfSignature";
 
@@ -503,6 +505,53 @@ const S = {
     lineHeight: 1.7,
   },
 
+  // ── Password box (encrypted PDF) ─────────────────────────────────────────────
+  passwordBox: {
+    background: C.blueLight,
+    border: `1px solid ${C.blueBorder}`,
+    borderRadius: 8,
+    padding: "16px 20px",
+    marginBottom: 12,
+  },
+  passwordLabel: {
+    fontSize: 13,
+    color: C.text,
+    margin: "0 0 6px",
+    lineHeight: 1.6,
+  },
+  passwordHint: {
+    fontSize: 11,
+    color: C.muted,
+    margin: "0 0 10px",
+    lineHeight: 1.65,
+  },
+  passwordInput: {
+    display: "block",
+    width: "100%",
+    padding: "10px 12px",
+    border: `1px solid ${C.border}`,
+    borderRadius: 6,
+    fontSize: 14,
+    fontFamily: "monospace",
+    marginBottom: 10,
+    boxSizing: "border-box" as const,
+    outline: "none",
+  },
+  generateBtn: {
+    display: "block",
+    width: "100%",
+    padding: "11px",
+    background: C.blue,
+    border: "none",
+    borderRadius: 6,
+    color: C.white,
+    fontSize: 14,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    cursor: "pointer",
+    transition: "background 0.15s",
+  },
+
   // ── Footer ───────────────────────────────────────────────────────────────────
   footer: {
     background: C.white,
@@ -527,8 +576,43 @@ export default function AadhaarVerifier() {
   const [error, setError]           = useState<string | null>(null);
   const [verifiedUrl, setVerifiedUrl] = useState<string | null>(null);
   const [progress, setProgress]     = useState("");
+  const [rawPdfBytes, setRawPdfBytes]   = useState<Uint8Array | null>(null);
+  const [pdfEncrypted, setPdfEncrypted] = useState(false);
+  const [pdfPassword, setPdfPassword]   = useState("");
+  const [stampLoading, setStampLoading] = useState(false);
+  const [stampError, setStampError]     = useState<string | null>(null);
   const fileRef                     = useRef<HTMLInputElement>(null);
   const libsLoadingRef              = useRef(false);
+
+  const stampWithPassword = useCallback(async () => {
+    if (!rawPdfBytes || !window.PDFLib) return;
+    setStampLoading(true);
+    setStampError(null);
+    try {
+      // 1. Decrypt the PDF using the user's password
+      const decrypted = await decryptPDF(rawPdfBytes, pdfPassword, window.PDFLib, window.forge);
+
+      // 2. Fetch the tick image (same as the non-encrypted path)
+      let tickPngBytes: Uint8Array | undefined;
+      try {
+        const r = await fetch("/tick.png");
+        tickPngBytes = new Uint8Array(await r.arrayBuffer());
+      } catch { /* drawn fallback */ }
+
+      // 3. Apply the FRM XObject stamp — identical to the non-encrypted path
+      const stamped = await addVerificationStamp(decrypted, { signerCertInfo: result!.signerCertInfo }, window.PDFLib, tickPngBytes);
+      setVerifiedUrl(URL.createObjectURL(new Blob([stamped.buffer as ArrayBuffer], { type: "application/pdf" })));
+    } catch (e) {
+      const msg = (e as Error).message ?? String(e);
+      setStampError(
+        /password|incorrect/i.test(msg)
+          ? "Incorrect password. Please check and try again."
+          : `Failed: ${msg}`,
+      );
+    } finally {
+      setStampLoading(false);
+    }
+  }, [rawPdfBytes, pdfPassword, result]);
 
   const loadLibs = useCallback(() => {
     if (libsReady || libsLoadingRef.current) return;
@@ -554,12 +638,17 @@ export default function AadhaarVerifier() {
     setError(null);
     setResult(null);
     setVerifiedUrl(null);
+    setStampError(null);
     setStep("analyzing");
 
     try {
       setProgress("Reading PDF…");
       const buffer   = await file!.arrayBuffer();
       const pdfBytes = new Uint8Array(buffer);
+
+      const encrypted = isPdfEncrypted(pdfBytes);
+      setPdfEncrypted(encrypted);
+      setRawPdfBytes(pdfBytes);
 
       setProgress("Extracting digital signature…");
       const { signedData, sigBytes, byteRange } = extractPDFSignature(pdfBytes);
@@ -576,7 +665,7 @@ export default function AadhaarVerifier() {
       };
       setResult(res);
 
-      if (verifyResult.verified && window.PDFLib) {
+      if (verifyResult.verified && window.PDFLib && !encrypted) {
         setProgress("Embedding verification stamp…");
         try {
           let tickPngBytes: Uint8Array | undefined;
@@ -585,13 +674,13 @@ export default function AadhaarVerifier() {
             tickPngBytes = new Uint8Array(await r.arrayBuffer());
           } catch { /* use drawn fallback */ }
           const stamped = await addVerificationStamp(pdfBytes, verifyResult, window.PDFLib, tickPngBytes);
-          const blob = new Blob([stamped as BlobPart], { type: "application/pdf" });
+          const blob = new Blob([stamped.buffer as ArrayBuffer], { type: "application/pdf" });
           setVerifiedUrl(URL.createObjectURL(blob));
         } catch {
-          const blob = new Blob([pdfBytes], { type: "application/pdf" });
-          setVerifiedUrl(URL.createObjectURL(blob));
+          /* stamp failed — leave verifiedUrl null, user can still see result */
         }
       }
+      // For encrypted PDFs: verifiedUrl stays null, password UI will appear in result step
 
       setStep("result");
     } catch (e) {
@@ -612,6 +701,11 @@ export default function AadhaarVerifier() {
     setResult(null);
     setError(null);
     setVerifiedUrl(null);
+    setRawPdfBytes(null);
+    setPdfEncrypted(false);
+    setPdfPassword("");
+    setStampLoading(false);
+    setStampError(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -745,6 +839,33 @@ export default function AadhaarVerifier() {
                 >
                   ↓ Download Stamped PDF
                 </a>
+              ) : result.verified && pdfEncrypted && !verifiedUrl ? (
+                <div style={S.passwordBox}>
+                  <p style={S.passwordLabel}>
+                    🔒 This PDF is password-protected. Enter your Aadhaar PDF password to generate the stamped copy.
+                  </p>
+                  <p style={S.passwordHint}>
+                    Format: First 4 letters of name (caps) + Year of birth<br />
+                    Example: <strong>RAHU1990</strong>
+                  </p>
+                  <input
+                    style={S.passwordInput}
+                    type="password"
+                    placeholder="e.g. RAHU1990"
+                    value={pdfPassword}
+                    onChange={(e) => setPdfPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && stampWithPassword()}
+                    autoComplete="off"
+                  />
+                  <button
+                    style={{ ...S.generateBtn, opacity: stampLoading ? 0.7 : 1 }}
+                    onClick={stampWithPassword}
+                    disabled={stampLoading}
+                  >
+                    {stampLoading ? "Generating stamped PDF…" : "Generate Stamped PDF"}
+                  </button>
+                  {stampError && <div style={{ ...S.errorBox, marginTop: 10 }}>{stampError}</div>}
+                </div>
               ) : result.verified ? (
                 <div style={{ ...S.errorBox, marginBottom: 12 }}>
                   Stamp could not be embedded — but the signature is verified.

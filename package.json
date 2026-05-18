@@ -11,6 +11,7 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
+    "@pdfsmaller/pdf-decrypt": "^1.0.1",
     "node-forge": "^1.4.0",
     "pdf-lib": "^1.17.1",
     "react": "^19.2.5",

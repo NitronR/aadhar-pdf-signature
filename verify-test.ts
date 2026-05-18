@@ -1,7 +1,7 @@
 import forge from 'node-forge';
 import * as PDFLib from 'pdf-lib';
 import { readFileSync, writeFileSync } from 'fs';
-import { extractPDFSignature, verifySignature, addVerificationStamp } from './src/pdfSignature.ts';
+import { extractPDFSignature, verifySignature, addVerificationStamp, decryptPDF } from './src/pdfSignature.ts';
 
 const PDF_PATH = '/Users/bhanu-mac/Desktop/Projects/aadhar-pdf-signature/.ignore/Aadhar.pdf';
 const pdfBytes = new Uint8Array(readFileSync(PDF_PATH));
@@ -94,10 +94,14 @@ console.log('Issuer org:     ', r.issuerO ?? '—');
 console.log('Issuer CN:      ', r.issuerCN ?? '—');
 
 if (result.verified) {
+  console.log('\n─── Decrypt ───────────────────────────────');
+  const decryptedBytes = await decryptPDF(pdfBytes, 'BHAN1999', PDFLib, forge);
+  console.log('Decrypted size:', decryptedBytes.length, 'bytes');
+
   console.log('\n─── Stamp ─────────────────────────────────');
   const TICK_PATH = '/Users/bhanu-mac/Desktop/Projects/aadhar-pdf-signature/tick.png';
   const tickPngBytes = new Uint8Array(readFileSync(TICK_PATH));
-  const stamped = await addVerificationStamp(pdfBytes, result, PDFLib, tickPngBytes);
+  const stamped = await addVerificationStamp(decryptedBytes, result, PDFLib, tickPngBytes);
   const outPath = PDF_PATH.replace('.pdf', '_verified.pdf');
   writeFileSync(outPath, Buffer.from(stamped));
   console.log('Stamped PDF →  ', outPath);

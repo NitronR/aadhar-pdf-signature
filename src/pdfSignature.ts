@@ -1,5 +1,6 @@
 import type NodeForge from 'node-forge';
 import type * as PDFLibTypes from 'pdf-lib';
+import { decryptPDF as _libDecryptPDF } from '@pdfsmaller/pdf-decrypt';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -358,6 +359,12 @@ function derTotalLength(bytes: Uint8Array): number {
   return 2 + numLenBytes + contentLen;
 }
 
+export function isPdfEncrypted(pdfBytes: Uint8Array): boolean {
+  // /Encrypt appears in the trailer (end of file) — scan the last 4 KB
+  const tail = pdfBytes.slice(Math.max(0, pdfBytes.length - 4096));
+  return /\/Encrypt\b/.test(new TextDecoder('iso-8859-1').decode(tail));
+}
+
 export function extractPDFSignature(pdfBytes: Uint8Array): ExtractionResult {
   const str = new TextDecoder("iso-8859-1").decode(pdfBytes);
 
@@ -452,6 +459,15 @@ export async function verifySignature(
   };
 }
 
+export async function decryptPDF(
+  encryptedBytes: Uint8Array,
+  password: string,
+  _PDFLib?: unknown,
+  _forge?: unknown,
+): Promise<Uint8Array> {
+  return _libDecryptPDF(encryptedBytes, password);
+}
+
 export async function addVerificationStamp(
   pdfBytes: Uint8Array,
   _verifyResult: Pick<VerifyResult, 'signerCertInfo'>,
@@ -466,7 +482,9 @@ export async function addVerificationStamp(
   // Walk all indirect objects to find the Sig widget annotation,
   // then navigate: AP → N (form XObject) → Resources → XObject → FRM → Resources → XObject
   // to reach the dict that maps n1 (yellow ?) and n4 (title) to their stream refs.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let frmXObjects: any = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const [, obj] of ctx.indirectObjects as Map<unknown, any>) {
     try {
       if (obj.get?.(PDFName.of('FT'))?.toString() !== '/Sig') continue;
@@ -486,7 +504,6 @@ export async function addVerificationStamp(
   const n1Stream = ctx.lookup(frmXObjects.get(PDFName.of('n1')));
   if (n1Stream) {
     if (tickPngBytes) {
-      // Embed the PNG and draw it filling the entire n1 BBox [0 0 100 100].
       const img = await pdfDoc.embedPng(tickPngBytes);
       n1Stream.dict.get(PDFName.of('Resources')).set(
         PDFName.of('XObject'),
@@ -498,7 +515,6 @@ export async function addVerificationStamp(
       n1Stream.dict.delete(PDFName.of('Filter'));
       n1Stream.dict.set(PDFName.of('Length'), PDFNumber.of(bytes.length));
     } else {
-      // Fallback: drawn green checkmark path (line width 2.8/0.27 ≈ 10.4 in n1 coords).
       patchStream(ctx, frmXObjects.get(PDFName.of('n1')), PDFName, PDFNumber,
         'q\n0.20 0.78 0.20 RG\n10.4 w\n1 J\n5 65 m 41 30 l S\n41 30 m 95 88 l S\nQ\n');
     }
