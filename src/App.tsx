@@ -588,6 +588,7 @@ export default function AadhaarVerifier() {
 
   const stampWithPassword = useCallback(async () => {
     if (!rawPdfBytes || !window.PDFLib) return;
+    gtag("event", "password_submitted");
     setStampLoading(true);
     setStampError(null);
     try {
@@ -597,10 +598,13 @@ export default function AadhaarVerifier() {
       // 2. Apply the FRM XObject stamp — identical to the non-encrypted path
       const stamped = await addVerificationStamp(decrypted, { signerCertInfo: result!.signerCertInfo }, window.PDFLib, tickPngBytes);
       setVerifiedUrl(URL.createObjectURL(new Blob([stamped.buffer as ArrayBuffer], { type: "application/pdf" })));
+      gtag("event", "stamp_generated", { encrypted: true });
     } catch (e) {
       const msg = (e as Error).message ?? String(e);
+      const isWrongPassword = /password|incorrect/i.test(msg);
+      gtag("event", "stamp_failed", { reason: isWrongPassword ? "wrong_password" : msg });
       setStampError(
-        /password|incorrect/i.test(msg)
+        isWrongPassword
           ? "Incorrect password. Please check and try again."
           : `Failed: ${msg}`,
       );
@@ -621,7 +625,7 @@ export default function AadhaarVerifier() {
       fetch("/tick.png").then(r => r.arrayBuffer()).then(b => setTickPngBytes(new Uint8Array(b))).catch(() => {}),
     ])
       .then(() => { setLibsReady(true); setLibsLoading(false); })
-      .catch(() => { setLibError("Failed to load cryptographic libraries. Check your internet connection."); setLibsLoading(false); });
+      .catch(() => { gtag("event", "libs_load_failed"); setLibError("Failed to load cryptographic libraries. Check your internet connection."); setLibsLoading(false); });
   }, [libsReady]);
 
   const processFile = useCallback(async (file: File | null | undefined) => {
@@ -629,6 +633,7 @@ export default function AadhaarVerifier() {
       setError("Please upload a PDF file (.pdf)");
       return;
     }
+    gtag("event", "file_selected", { file_size_kb: Math.round((file!.size ?? 0) / 1024) });
     if (!libsReady) {
       setError("Libraries are still loading — please wait a moment, then try again.");
       return;
@@ -662,6 +667,7 @@ export default function AadhaarVerifier() {
             and use that file instead.
           </span>
         );
+        gtag("event", "non_encrypted_pdf");
         setStep("upload");
         setProgress("");
         return;
@@ -684,13 +690,19 @@ export default function AadhaarVerifier() {
       };
       setResult(res);
 
+      gtag("event", verifyResult.verified ? "signature_verified" : "signature_failed", {
+        encrypted,
+      });
+
       if (verifyResult.verified && window.PDFLib && !encrypted) {
         setProgress("Embedding verification stamp…");
         try {
           const stamped = await addVerificationStamp(pdfBytes, verifyResult, window.PDFLib, tickPngBytes);
           const blob = new Blob([stamped.buffer as ArrayBuffer], { type: "application/pdf" });
           setVerifiedUrl(URL.createObjectURL(blob));
+          gtag("event", "stamp_generated");
         } catch {
+          gtag("event", "stamp_failed", { reason: "embed_error" });
           /* stamp failed — leave verifiedUrl null, user can still see result */
         }
       }
@@ -698,6 +710,7 @@ export default function AadhaarVerifier() {
 
       setStep("result");
     } catch (e) {
+      gtag("event", "processing_error", { reason: (e as Error).message });
       setError((e as Error).message);
       setStep("upload");
     }
@@ -878,6 +891,7 @@ export default function AadhaarVerifier() {
                     href={verifiedUrl}
                     download={result.fileName.replace(".pdf", "_verified.pdf")}
                     style={S.downloadBtn}
+                    onClick={() => gtag("event", "download_clicked")}
                   >
                     ↓ Download Stamped PDF
                   </a>
@@ -891,13 +905,13 @@ export default function AadhaarVerifier() {
                     🔒 This PDF is password-protected. Enter your Aadhaar PDF password to generate the stamped copy.
                   </p>
                   <p style={S.passwordHint}>
-                    Format: First 4 letters of name (caps) + Year of birth<br />
-                    Example: <strong>RAHU1990</strong>
+                    Format: First 4 letters of name in caps (or full name if shorter) + Year of birth<br />
+                    Example: <strong>RAHU1990</strong> or <strong>RIA1999</strong>
                   </p>
                   <input
                     style={S.passwordInput}
                     type="password"
-                    placeholder="e.g. RAHU1990"
+                    placeholder="e.g. RAHU1990 or RIA1999"
                     value={pdfPassword}
                     onChange={(e) => setPdfPassword(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && stampWithPassword()}
@@ -922,7 +936,7 @@ export default function AadhaarVerifier() {
                   UIDAI Aadhaar document.
                 </div>
               )}
-              <button style={S.resetBtn} onClick={reset}>
+              <button style={S.resetBtn} onClick={() => { gtag("event", "verify_another_clicked"); reset(); }}>
                 ← Verify Another PDF
               </button>
               <a
@@ -930,6 +944,7 @@ export default function AadhaarVerifier() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ ...S.feedbackBtn, textDecoration: "none", textAlign: "center" as const }}
+                onClick={() => gtag("event", "feedback_clicked")}
               >
                 🙏 Help us with a Feedback :)
               </a>

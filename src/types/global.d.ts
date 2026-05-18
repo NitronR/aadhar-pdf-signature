@@ -1,6 +1,9 @@
 import type forge from 'node-forge';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function gtag(...args: any[]): void;
+
   interface Window {
     forge: typeof forge;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
