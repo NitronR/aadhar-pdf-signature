@@ -1,66 +1,95 @@
 # Aadhaar PDF Verifier
 
-Verify UIDAI digital signatures in Aadhaar PDF documents. Upload a PDF, extract the PKCS#7 signature, validate the certificate chain against CCA India's trusted root, and download a stamped copy.
+Verify the UIDAI digital signature in your eAadhaar PDF and download a stamped copy — entirely in your browser, no server involved.
+
+**Live:** [aadhaar-pdf-signature.pages.dev](https://aadhar-pdf-signature.pages.dev) &nbsp;·&nbsp; **Hindi:** `/hi/`
+
+---
 
 ## Features
 
-- Extract and parse PDF digital signatures (PKCS#7 / CMS)
-- Verify cryptographic signature validity
-- **Chain validation against CCA India trusted root certificates** (CCA India 2007 & 2022 roots embedded)
+- Handles **password-protected** (encrypted) Aadhaar PDFs — the standard format from UIDAI's portal
+- Extract and parse PKCS#7 / CMS digital signatures embedded in the PDF
+- **Two-step verification**: cryptographic PKCS#7 check + certificate chain to CCA India root
 - Detect UIDAI certificate chain (Safescrypt, e-Mudhra, nCode, NIC)
-- Display signer certificate details (issuer, subject, validity, serial number)
-- Two-step verification: PKCS#7 signature check + certificate chain to root
-- Generate visually stamped PDF with green "Signature valid" badge
-- 100% client-side — no data uploaded anywhere
+- Display full signer certificate details (issuer, subject, validity, serial number)
+- Generate a visually stamped PDF with a green "Signature Valid" badge
+- 100% client-side — your file never leaves your device
 
 ## How It Works
 
-1. **Extract** — Locates the ByteRange and PKCS#7 Contents field embedded by UIDAI
-2. **Verify** — Two-step validation:
-   - **Certificate chain verification**: Builds SHA-256 fingerprint of each cert in chain and verifies it reaches a CCA India root (either 2007 or 2022 root embedded in the app)
-   - **PKCS#7 signature verification**: Uses forge.js to verify the cryptographic signature over the signed PDF content using the embedded signer certificate
-3. **Stamp** — Appends a visual "Signature valid" stamp to the PDF using pdf-lib without breaking the original signature
+1. **Extract** — Locates the `ByteRange` and `Contents` (PKCS#7) fields embedded by UIDAI
+2. **Decrypt** (if encrypted) — Decrypts the PDF in-browser using `@pdfsmaller/pdf-decrypt`; the password is never sent anywhere
+3. **Verify** — Two-step validation:
+   - **Certificate chain**: walks leaf → intermediate CA → root, verifying each RSA link and confirming the chain terminates at a CCA India trusted root
+   - **PKCS#7 signature**: verifies the cryptographic signature over the signed byte ranges using forge.js
+4. **Stamp** — Appends a visual stamp to the PDF using pdf-lib without touching (and thus invalidating) the original signature
 
-## Certificate Chain Validation
+## Certificate Chain
 
-The verifier is configured with **two trusted root certificates** from India's PKI hierarchy:
+Two CCA India root certificates are embedded in the app:
 
-| Root | Valid | Downloaded from |
-|------|-------|----------------|
-| CCA India 2007 | 13 Jun 2007 – 04 Jul 2015 | cca.gov.in |
-| CCA India 2022 | 02 Feb 2022 – 02 Feb 2042 | cca.gov.in |
+| Root | Valid |
+|------|-------|
+| CCA India 2007 | 13 Jun 2007 – 04 Jul 2015 |
+| CCA India 2022 | 02 Feb 2022 – 02 Feb 2042 |
 
-The chain is validated by:
-1. Computing SHA-256 fingerprint of each certificate in the chain
-2. Walking up the chain (leaf → intermediate CA → root)
-3. Verifying each parent→child link cryptographically (RSA signature check)
-4. Confirming the chain terminates at a CCA India trusted root
+`verified` = `chainVerified AND (signatureVerified OR hasUIDAI)`
 
-The final `verified` result = `chainVerified AND (signatureVerified OR hasUIDAI)`. The UIDAI fallback handles cases where the PKCS#7 verification fails due to missing trust store, but the chain genuinely reaches a CCA root.
+The UIDAI fallback handles cases where forge's PKCS#7 check fails due to a missing trust store but the chain genuinely reaches a CCA root.
 
 ## Tech Stack
 
-- React + TypeScript + Vite
-- [forge.js](https://github.com/digitalbazaar/forge) — PKCS#7 parsing, ASN.1 handling, RSA crypto
-- [pdf-lib](https://github.com/HoppingGamer/pdf-lib) — PDF manipulation and stamping
+- **React 19 + TypeScript + Vite 8**
+- [forge.js](https://github.com/digitalbazaar/forge) — PKCS#7 parsing, ASN.1, RSA crypto (loaded from CDN at runtime)
+- [pdf-lib](https://github.com/Hopding/pdf-lib) — PDF stamping (loaded from CDN at runtime)
+- [@pdfsmaller/pdf-decrypt](https://www.npmjs.com/package/@pdfsmaller/pdf-decrypt) — in-browser PDF decryption
+- **Cloudflare Pages** — hosting and deployment via Wrangler
 
-## Getting Started
+> The npm packages `node-forge` and `pdf-lib` in `package.json` are present only for their TypeScript types. The actual runtime code is loaded from CDN via a `loadScript` helper so the main bundle stays small.
+
+## Commands
 
 ```bash
-npm install
-npm run dev
+npm install          # install dependencies
+npm run dev          # Vite dev server → http://localhost:5173
+npm run build        # TypeScript check + production build
+npm run lint         # ESLint
+npm run test         # Vitest unit tests
+npm run preview      # build + preview via Wrangler (mirrors production)
+npm run deploy       # build + deploy to Cloudflare Pages
 ```
 
-## Usage
+## Project Structure
 
-1. Open the app in your browser
-2. Drag and drop (or browse) an Aadhaar PDF downloaded from UIDAI's official portal
-3. Review the verification results — includes **Chain Valid** (reaches CCA India root) and **PKCS#7 Signature** (cryptographically valid) indicators
-4. Download the stamped PDF with "Signature valid" badge
+```
+src/
+  App.tsx           # UI and processing pipeline (~1000 lines)
+  pdfSignature.ts   # Core logic: extract, verify, decrypt, stamp
+  types/
+    global.d.ts     # Window types for forge and PDFLib globals
+  test/
+    pdfSignature.test.ts
+    fixtures/
+public/
+  hi/               # Hindi locale (static HTML)
+  signature_valid_sample.png
+  tick.png
+  og-image.png
+```
 
-## Note
+## Privacy
+
+Your Aadhaar PDF is processed entirely in your browser. To verify:
+
+1. Open DevTools → Network tab before uploading — you'll see zero requests containing your file.
+2. Or disconnect from the internet after the page loads — the tool still works.
+
+The complete source code is open for inspection in this repository.
+
+## Notes
 
 - Only processes PDFs with embedded digital signatures
-- Requires internet connection for library CDN loading on first visit
-- Signatures are verified cryptographically; tampered PDFs will show verification failure
-- CRL/OCSP revocation checking is not yet implemented (future improvement)
+- For encrypted PDFs, enter your password in the app (format: first 4 letters of name in caps + year of birth, e.g. `RAHU1990`)
+- The stamped PDF is intended for **printing / physical submission**. Share the original eAadhaar where the recipient validates the digital signature electronically
+- CRL/OCSP revocation checking is not implemented
