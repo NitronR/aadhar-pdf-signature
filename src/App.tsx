@@ -761,7 +761,34 @@ export default function AadhaarVerifier() {
             <span style={S.topBarTagline}>Aadhaar Digital Signature Tool</span>
           </div>
         </div>
-        <div style={S.topBarBadge}>🔒 100% Private</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <a
+            href="https://github.com/NitronR/aadhar-pdf-signature"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.28)",
+              borderRadius: 4,
+              padding: "4px 10px",
+              color: "#ffffff",
+              fontSize: 11,
+              letterSpacing: 0.5,
+              fontWeight: 500,
+              textDecoration: "none",
+              opacity: 0.9,
+            }}
+          >
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            Open Source
+          </a>
+          <div style={S.topBarBadge}>🔒 100% Private</div>
+        </div>
       </nav>
 
       {/* ── Main Content ── */}
@@ -811,7 +838,16 @@ export default function AadhaarVerifier() {
               </div>
 
               <div style={S.dzPrivacy}>
-                🔒 Your file never leaves your device — 100% client-side processing. You can verify this by disconnecting from the internet and using the tool — it will still work.
+                🔒 Your file never leaves your device — all processing runs in your browser.
+                Verify it: disconnect from the internet and it still works. Or{" "}
+                <a
+                  href="https://github.com/NitronR/aadhar-pdf-signature"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: C.muted, fontWeight: 600, textUnderlineOffset: 2 }}
+                >
+                  read the source code on GitHub ↗
+                </a>
               </div>
 
               <div style={{ ...S.infoBox, marginTop: 10, textAlign: "center" as const }}>
@@ -1095,8 +1131,18 @@ export default function AadhaarVerifier() {
               It then embeds a "Signature Valid" stamp into your PDF using pdf-lib.
             </p>
             <p style={{ ...S.seoP, marginBottom: 0 }}>
-              Your Aadhaar PDF never leaves your device. You can verify this by disconnecting from the
-              internet after the page loads — the tool will still work.
+              Your Aadhaar PDF never leaves your device. You can verify this by disconnecting from
+              the internet after the page loads — the tool will still work. The complete source code
+              is{" "}
+              <a
+                href="https://github.com/NitronR/aadhar-pdf-signature"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: C.blue }}
+              >
+                open source on GitHub
+              </a>
+              {" "}and available for anyone to audit.
             </p>
           </div>
 
@@ -1124,7 +1170,20 @@ export default function AadhaarVerifier() {
               },
               {
                 q: "Is it safe to use my Aadhaar PDF with this tool?",
-                a: "This tool processes your Aadhaar PDF entirely inside your browser using JavaScript. Your file is never uploaded to any server. You can verify this by turning off your internet after uploading — the tool will still work.",
+                a: <>
+                  This tool processes your Aadhaar PDF entirely inside your browser using JavaScript.
+                  Your file is never uploaded to any server. Verify it yourself: turn off your
+                  internet after uploading — the tool still works. The complete source code is{" "}
+                  <a
+                    href="https://github.com/NitronR/aadhar-pdf-signature"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: C.blue }}
+                  >
+                    open source on GitHub
+                  </a>
+                  {" "}for anyone to read and audit.
+                </>,
               },
               {
                 q: "Will passport offices and banks accept this verified Aadhaar PDF?",
@@ -1154,6 +1213,15 @@ export default function AadhaarVerifier() {
         100% client-side · No data leaves your browser · Free to use<br />
         <a href="/hi/" style={{ color: C.blue, textDecoration: "none", fontSize: 11 }}>
           हिंदी में देखें →
+        </a>
+        {" · "}
+        <a
+          href="https://github.com/NitronR/aadhar-pdf-signature"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: C.blue, textDecoration: "none", fontSize: 11 }}
+        >
+          GitHub ↗
         </a>
         {" · "}
         <a
